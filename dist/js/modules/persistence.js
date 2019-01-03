@@ -16,10 +16,6 @@ Persistence.prototype.initialize = function (mode, id) {
 	this.id = "tabulator-" + (id || this.table.element.getAttribute("id") || "");
 };
 
-Persistence.prototype.setID = function (id) {
-	this.id = "tabulator-" + id;
-};
-
 //load saved definitions
 Persistence.prototype.load = function (type, current) {
 
