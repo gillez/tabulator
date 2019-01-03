@@ -515,6 +515,8 @@ Page.prototype.paginationDataSentNames = {
 	"sorters": "sorters",
 	// "sort_dir":"sort_dir",
 	"filters": "filters"
+	// "filter_value":"filter_value",
+	// "filter_type":"filter_type",
 };
 
 //set the property names for pagination responses
