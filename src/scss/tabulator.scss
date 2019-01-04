@@ -1,18 +1,13 @@
 
 //Main Theme Variables
-// YoYotta customisation
-// $backgroundColor: #888 !default; //background color of tabulator
-$backgroundColor: #FFFFFF !default; 
+$backgroundColor: #888 !default; //background color of tabulator
 $borderColor:#999 !default; //border to tabulator
 $textSize:14px !default; //table text size
 
 //header themeing
-// YoYotta customisation
-// $headerBorderColor:#aaa !default;  //header border color
-// $headerBackgroundColor:#e6e6e6 !default; //border to tabulator
-$headerBorderColor:#bbb !default;  //header border color
-$headerBackgroundColor:#f8f8f8 !default; //border to tabulator
+$headerBackgroundColor:#e6e6e6 !default; //border to tabulator
 $headerTextColor:#555 !default; //header text colour
+$headerBorderColor:#aaa !default;  //header border color
 $headerSeperatorColor:#999 !default; //header bottom seperator color
 $headerMargin:4px !default; //padding round header
 
@@ -23,9 +18,7 @@ $sortArrowInactive: #bbb !default;
 //row themeing
 $rowBackgroundColor:#fff !default; //table row background color
 $rowAltBackgroundColor:#EFEFEF !default; //table row background color
-// YoYotta customisation
-// $rowBorderColor:#aaa !default; //table border color
-$rowBorderColor:#bbb !default; //table border color
+$rowBorderColor:#aaa !default; //table border color
 $rowTextColor:#333 !default; //table text color
 $rowHoverBackground:#bbb !default; //row background color on hover
 
@@ -48,8 +41,7 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 .tabulator{
 	position: relative;
 
-	// YoYotta customisation
-	// border: 1px solid $borderColor;
+	border: 1px solid $borderColor;
 
 	background-color: $backgroundColor;
 
@@ -561,8 +553,7 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 	}
 
 	&.tabulator-selectable:hover{
-		// YoYotta customisation
-		// background-color:$rowHoverBackground;
+		background-color:$rowHoverBackground;
 		cursor: pointer;
 	}
 
@@ -571,8 +562,7 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 	}
 
 	&.tabulator-selected:hover{
-		// YoYotta customisation
-		// background-color:$rowSelectedBackgroundHover;
+		background-color:$rowSelectedBackgroundHover;
 		cursor: pointer;
 	}
 
@@ -658,9 +648,7 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 		display:inline-block;
 		position: relative;
 		box-sizing:border-box;
-		// YoYotta customisation
-		// padding:4px;
-		padding: 4px 0;
+		padding:4px;
 		border-right:1px solid $rowBorderColor;
 		vertical-align:middle;
 		white-space:nowrap;
