@@ -65,6 +65,30 @@ CellComponent.prototype.getTable = function(){
 	return this._cell.table;
 };
 
+CellComponent.prototype.select = function(){
+	if(this._cell.table.modExists("selectCell", true)){
+		this._cell.table.modules.selectCell.selectCells(this._cell);
+	}
+};
+
+CellComponent.prototype.deselect = function(){
+	if(this._cell.table.modExists("selectCell", true)){
+		this._cell.table.modules.selectCell.deselectCells(this._cell);
+	}
+};
+
+CellComponent.prototype.toggleSelect = function(){
+	if(this._cell.table.modExists("selectCell", true)){
+		this._cell.table.modules.selectCell.toggleCell(this._cell);
+	}
+};
+
+CellComponent.prototype.isSelected = function(){
+	if(this._cell.table.modExists("selectCell", true)){
+		return this._cell.table.modules.selectCell.isCellSelected(this._cell);
+	}
+};
+
 CellComponent.prototype._getSelf = function(){
 	return this._cell;
 };
@@ -84,6 +108,8 @@ var Cell = function(column, row){
 	this.width = null;
 	this.minWidth = null;
 
+	this.modules = {}; //hold module variables;
+
 	this.build();
 };
 
@@ -101,6 +127,11 @@ Cell.prototype.build = function(){
 };
 
 Cell.prototype.generateElement = function(){
+	//set cell selection characteristics
+	if(this.table.modExists("selectCell")){
+		this.table.modules.selectCell.initializeCell(this);
+	}
+	
 	this.element = document.createElement('div');
 	this.element.className = "tabulator-cell";
 	this.element.setAttribute("role", "gridcell");
@@ -493,6 +524,11 @@ Cell.prototype.cancelEdit = function(){
 
 
 Cell.prototype.delete = function(){
+	//deselect cell if it is selected
+	if(this.table.modExists("selectCell")){
+		this.table.modules.selectCell._deselectCell(this, true);
+	}
+
 	this.element.parentNode.removeChild(this.element);
 	this.column.deleteCell(this);
 	this.row.deleteCell(this);
