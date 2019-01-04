@@ -21,7 +21,7 @@ fs = require('fs');
 
 var version_no = "4.1.4",
 
-version = "/* Tabulator v" + version_no + " (c) Oliver Folkerd */\n";
+version = "/* Tabulator v" + version_no + " (c) Oliver Folkerd, with fork modifications by Giles Ellis, YoYotta */\n";
 
 var gulp_src = gulp.src;
 gulp.src = function() {
@@ -71,7 +71,7 @@ gulp.task('tabulator', function() {
             modules: false,
         }, ], {  }]
       }))
-    .pipe(concat('tabulator.js'))
+    .pipe(concat('tabulator_yo.js'))
     .pipe(gulp.dest('dist/js'))
     .pipe(rename({suffix: '.min'}))
     .pipe(uglify())
@@ -99,7 +99,7 @@ gulp.task('core', function() {
         }]
         ]
         }))
-    .pipe(concat('tabulator_core.js'))
+    .pipe(concat('tabulator_core_yo.js'))
     .pipe(gulp.dest('dist/js'))
     .pipe(rename({suffix: '.min'}))
     .pipe(uglify())
