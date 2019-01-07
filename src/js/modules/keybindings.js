@@ -63,6 +63,7 @@ Keybindings.prototype.mapBinding = function(action, symbolsList){
 		keys: [],
 		ctrl: false,
 		shift: false,
+		ctrlcmd: false
 	};
 
 	var symbols = symbolsList.toString().toLowerCase().split(" ").join("").split("+");
@@ -71,6 +72,10 @@ Keybindings.prototype.mapBinding = function(action, symbolsList){
 		switch(symbol){
 			case "ctrl":
 			binding.ctrl = true;
+			break;
+
+			case "ctrlcmd":
+			binding.ctrlcmd = true;
 			break;
 
 			case "shift":
@@ -141,13 +146,13 @@ Keybindings.prototype.checkBinding = function(e, binding){
 	var self = this,
 	match = true;
 
-	if(e.ctrlKey == binding.ctrl && e.shiftKey == binding.shift){
+	if((((e.ctrlKey || e.metaKey) == binding.ctrlcmd) || (e.ctrlKey == binding.ctrl)) && e.shiftKey == binding.shift) {
 		binding.keys.forEach(function(key){
-			var index = self.pressedKeys.indexOf(key);
+		var index = self.pressedKeys.indexOf(key);
 
-			if(index == -1){
-				match = false;
-			}
+		if(index == -1){
+			match = false;
+		}
 		});
 
 		if(match){
