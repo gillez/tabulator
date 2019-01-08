@@ -131,7 +131,7 @@ Cell.prototype.generateElement = function(){
 	if(this.table.modExists("selectCell")){
 		this.table.modules.selectCell.initializeCell(this);
 	}
-	
+
 	this.element = document.createElement('div');
 	this.element.className = "tabulator-cell";
 	this.element.setAttribute("role", "gridcell");

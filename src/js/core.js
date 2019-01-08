@@ -998,11 +998,11 @@ Tabulator.prototype.copyToClipboard = function(selector, selectorParams, formatt
 /////////////// Column Functions  ///////////////
 
 Tabulator.prototype.setColumns = function(definition){
-  	if(this.options.persistentLayout && this.modExists("persistence", true)){
-    	definition = this.modules.persistence.load("columns", definition);
-  	}
+	if(this.options.persistentLayout && this.modExists("persistence", true)){
+		definition = this.modules.persistence.load("columns", definition);
+	}
 
-  	this.columnManager.setColumns(definition);
+	this.columnManager.setColumns(definition);
 };
 
 Tabulator.prototype.getColumns = function(structured){

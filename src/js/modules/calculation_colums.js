@@ -263,7 +263,7 @@ ColumnCalcs.prototype.generateRow = function(pos, data){
 
 				if (column.definition.cssClass) {
 					oldCssClass = self.genColumn.definition.cssClass;
-					self.genColumn.definition.cssClass = self.genColumn.definition.cssClass ? 
+					self.genColumn.definition.cssClass = self.genColumn.definition.cssClass ?
 						[self.genColumn.definition.cssClass, column.definition.cssClass].join(" ") :
 						column.definition.cssClass;
 				}

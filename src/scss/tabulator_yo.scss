@@ -2,7 +2,7 @@
 //Main Theme Variables
 // YoYotta customisation
 // $backgroundColor: #888 !default; //background color of tabulator
-$backgroundColor: #FFFFFF !default; 
+$backgroundColor: #FFFFFF !default;
 $borderColor:#999 !default; //border to tabulator
 $textSize:14px !default; //table text size
 
@@ -672,7 +672,7 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 		&.tabulator-selected{
 			background-color:$cellSelectedBackground;
 		}
-	
+
 		&.tabulator-editing{
 			border:1px solid  $editBoxColor;
 			padding: 0;

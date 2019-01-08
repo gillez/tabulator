@@ -661,12 +661,12 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 		&.tabulator-selected{
 			background-color:$cellSelectedBackground;
 		}
-	
+
 		&.tabulator-selected:hover{
 			background-color:$cellSelectedBackgroundHover;
 			cursor: pointer;
 		}
-	
+
 		&.tabulator-editing{
 			border:1px solid  $editBoxColor;
 			padding: 0;
