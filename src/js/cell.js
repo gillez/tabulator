@@ -65,21 +65,21 @@ CellComponent.prototype.getTable = function(){
 	return this._cell.table;
 };
 
-CellComponent.prototype.select = function(){
+CellComponent.prototype.select = function(checkRow){
 	if(this._cell.table.modExists("selectCell", true)){
-		this._cell.table.modules.selectCell.selectCells(this._cell);
+		this._cell.table.modules.selectCell.selectCells(this._cell, checkRow);
 	}
 };
 
-CellComponent.prototype.deselect = function(){
+CellComponent.prototype.deselect = function(checkRow){
 	if(this._cell.table.modExists("selectCell", true)){
-		this._cell.table.modules.selectCell.deselectCells(this._cell);
+		this._cell.table.modules.selectCell.deselectCells(this._cell, checkRow);
 	}
 };
 
-CellComponent.prototype.toggleSelect = function(){
+CellComponent.prototype.toggleSelect = function(checkRow){
 	if(this._cell.table.modExists("selectCell", true)){
-		this._cell.table.modules.selectCell.toggleCell(this._cell);
+		this._cell.table.modules.selectCell.toggleCell(this._cell, checkRow);
 	}
 };
 

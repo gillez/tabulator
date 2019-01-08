@@ -30,7 +30,6 @@ $rowTextColor:#333 !default; //table text color
 $rowHoverBackground:#bbb !default; //row background color on hover
 
 $rowSelectedBackground: #9ABCEA !default; //row background color when selected
-$rowSelectedBackgroundHover: #769BCC !default;//row background color when selected and hovered
 
 $cellSelectedBackground: #9ABCEA !default; // cell background color when selected
 
@@ -568,14 +567,8 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 		cursor: pointer;
 	}
 
-	&.tabulator-selected{
+	&.tabulator-selected:not(.tabulator-selected-cells){
 		background-color:$rowSelectedBackground;
-	}
-
-	&.tabulator-selected:hover{
-		// YoYotta customisation
-		// background-color:$rowSelectedBackgroundHover;
-		cursor: pointer;
 	}
 
 	&.tabulator-row-moving{

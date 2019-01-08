@@ -250,7 +250,7 @@ SelectRow.prototype._deselectRow = function(rowInfo, silent){
 		if(index > -1){
 
 			row.modules.select.selected = false;
-			row.getElement().classList.remove("tabulator-selected");
+			row.getElement().classList.remove("tabulator-selected", "tabulator-selected-cells");
 			self.selectedRows.splice(index, 1);
 
 			if(!silent){

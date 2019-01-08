@@ -30,19 +30,21 @@ SelectCell.prototype.initializeCell = function(cell){
 };
 
 //toggle cell selection
-SelectCell.prototype.toggleCell = function(cell){
+SelectCell.prototype.toggleCell = function(cell, checkRow){
 	if(cell.modules.select.selected){
-		this._deselectCell(cell);
+		this._deselectCell(cell, false, checkRow);
 	}else{
-		this._selectCell(cell);
+		this._selectCell(cell, false, checkRow);
 	}
 };
 
 // select a number of cells
 // Unlike rows you cannot select all cells with this function.  Use selectRows if selecting all data is required.
 // Select all cells may be added later.
-SelectCell.prototype.selectCells = function(cells){
-	var self = this;
+SelectCell.prototype.selectCells = function(cells, checkRows){
+	var self = this,
+	rows,
+	row;
 
 	switch(typeof cells){
 		case "undefined":
@@ -55,13 +57,33 @@ SelectCell.prototype.selectCells = function(cells){
 
 		default:
 		if(Array.isArray(cells)){
+			rows = [];
 			cells.forEach(function(cell){
-				self._selectCell(cell, true, true);
+				self._selectCell(cell, true, false);
+				if (checkRows) {
+					var row = self.getCell(cell).row;
+					if (!rows.includes(row)) {
+						rows.push(row);
+					}
+				}
+
 			});
 
 			self._cellSelectionChanged();
+
+			if (checkRows) {
+				rows = rows.filter(function(row) {
+					return !row.getElement().classList.contains("tabulator-selected-cells");
+				});
+				if (rows.length > 0) {
+					rows.forEach(function(row) {
+						row.getElement().classList.add("tabulator-selected-cells");
+					});
+					self.table.modules.selectRow.selectRows(rows);
+				}
+			}
 		}else{
-			self._selectCell(cells, false, true);
+			self._selectCell(cells, false, checkRows);
 		}
 		break;
 	}
@@ -71,8 +93,9 @@ SelectCell.prototype.selectCells = function(cells){
 // Note: as there is no cell_manager, cells can only be selected by passing Cell or CellComponent objects.
 // Unlike rows, they can't be selected from an ID or DOM element.
 // Also, not handle max cell count and rolling selection
-SelectCell.prototype._selectCell = function(cellInfo, silent, force){
-	var cell = this.getCell(cellInfo);
+SelectCell.prototype._selectCell = function(cellInfo, silent, checkRow){
+	var cell = this.getCell(cellInfo),
+	rowEl;
 
 	if(cell){
 		if(this.selectedCells.indexOf(cell) == -1){
@@ -84,6 +107,15 @@ SelectCell.prototype._selectCell = function(cellInfo, silent, force){
 			if(!silent){
 				this.table.options.cellSelected.call(this.table, cell.getComponent());
 				this._cellSelectionChanged();
+			}
+
+			if (checkRow) {
+				rowEl = cell.row.getElement();
+
+				if (!rowEl.classList.contains("tabulator-selected-cells")) {
+					rowEl.classList.add("tabulator-selected-cells");
+					this.table.modules.selectRow.selectRows(cell.row);
+				}
 			}
 		}
 	}else{
@@ -98,34 +130,58 @@ SelectCell.prototype.isCellSelected = function(cell){
 };
 
 //deselect a number of cells
-SelectCell.prototype.deselectCells = function(cells){
+SelectCell.prototype.deselectCells = function(cells, checkRows){
 	var self = this,
-	cellCount;
+	cellCount,
+	rows,
+	row;
 
 	if(typeof cells == "undefined"){
 
 		cellCount = self.selectedCells.length;
 
 		for(let i = 0; i <cellCount; i++){
-			self._deselectCell(self.selectedCells[0], true);
+			self._deselectCell(self.selectedCells[0], true, false);
 		}
 
 		self._cellSelectionChanged();
+
+		if (checkRows) {
+			self.table.deselectRow();
+		}
 	}else{
 		if(Array.isArray(cells)){
+			rows = [];
+
 			cells.forEach(function(cell){
-				self._deselectCell(cell, true);
+				self._deselectCell(cell, true, false);
+				if (checkRows) {
+					row = self.getCell(cell).row;
+					if (!rows.includes(row)) {
+						rows.push(row);
+					}
+				}
 			});
 
 			self._cellSelectionChanged();
+
+			if (checkRows) {
+				rows = rows.filter(function(row) {
+					return !self._rowContainsSelectedCells(row);
+				});
+				if (rows.length > 0) {
+					self.table.modules.selectRow.deselectRows(rows);
+				}
+			}
 		}else{
-			self._deselectCell(cells);
+			self._deselectCell(cells, false, checkRows);
 		}
+
 	}
 };
 
 //deselect an individual cell
-SelectCell.prototype._deselectCell = function(cellInfo, silent){
+SelectCell.prototype._deselectCell = function(cellInfo, silent, checkRow){
 	var self = this,
 	cell = this.getCell(cellInfo),
 	index;
@@ -136,7 +192,6 @@ SelectCell.prototype._deselectCell = function(cellInfo, silent){
 		});
 
 		if(index > -1){
-
 			cell.modules.select.selected = false;
 			cell.getElement().classList.remove("tabulator-selected");
 			self.selectedCells.splice(index, 1);
@@ -145,12 +200,22 @@ SelectCell.prototype._deselectCell = function(cellInfo, silent){
 				self.table.options.cellDeselected.call(this.table, cell.getComponent());
 				self._cellSelectionChanged();
 			}
+
+			if (checkRow) {
+				if (!self._rowContainsSelectedCells(cell.row)) {
+					self.table.modules.selectRow.deselectRows(cell.row);
+				}
+			}
 		}
 	}else{
 		if(!silent){
 			console.warn("Deselection Error - No such cell found, ignoring selection:" + cellInfo);
 		}
 	}
+};
+
+SelectCell.prototype._rowContainsSelectedCells = function(row) {
+	return row.cells.some(cell => cell.modules.select.selected);
 };
 
 SelectCell.prototype.getCell = function(subject) {

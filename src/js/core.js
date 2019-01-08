@@ -1289,21 +1289,21 @@ Tabulator.prototype.getSelectedData = function(){
 	}
 };
 
-Tabulator.prototype.selectCell = function(cells){
+Tabulator.prototype.selectCell = function(cells, checkRow){
 	if(this.modExists("selectCell", true)){
-		this.modules.selectCell.selectCells(cells);
+		this.modules.selectCell.selectCells(cells, checkRow);
 	}
 };
 
-Tabulator.prototype.deselectCell = function(cells){
+Tabulator.prototype.deselectCell = function(cells, checkRow){
 	if(this.modExists("selectCell", true)){
-		this.modules.selectCell.deselectCells(cells);
+		this.modules.selectCell.deselectCells(cells, checkRow);
 	}
 };
 
-Tabulator.prototype.toggleSelectCell = function(cell){
+Tabulator.prototype.toggleSelectCell = function(cell, checkRow){
 	if(this.modExists("selectCell", true)){
-		this.modules.selectCell.toggleCell(cell);
+		this.modules.selectCell.toggleCell(cell, checkRow);
 	}
 };
 
