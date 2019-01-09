@@ -109,7 +109,9 @@ Edit.prototype.bindEditor = function(cell){
 	var self = this,
 	element = cell.getElement();
 
-	element.setAttribute("tabindex", 0);
+	// Giles: Disabling tabindex as it means the table no longer has focus and so key events aren't received.
+	// This will be changed soon to a different solution (adding button events to this cell?) but this works for now.
+	// element.setAttribute("tabindex", 0);
 
 	element.addEventListener("click", function(e){
 		if(!element.classList.contains("tabulator-editing")){
