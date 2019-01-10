@@ -211,9 +211,6 @@ Tabulator.prototype.defaultOptions = {
 	cellEditing:function(){},
 	cellEdited:function(){},
 	cellEditCancelled:function(){},
-	cellSelectionChanged:function(){},
-	cellSelected:function(){},
-	cellDeselected:function(){},
 
 	//column callbacks
 	columnMoved:false,
@@ -489,10 +486,6 @@ Tabulator.prototype._buildElement = function(){
 
 	if(this.modExists("selectRow")){
 		mod.selectRow.clearSelectionData(true);
-	}
-
-	if(this.modExists("selectCell")){
-		mod.selectCell.clearSelectionData(true);
 	}
 
 	if(options.autoResize && this.modExists("resizeTable")){
@@ -1286,30 +1279,6 @@ Tabulator.prototype.getSelectedRows = function(){
 Tabulator.prototype.getSelectedData = function(){
 	if(this.modExists("selectRow", true)){
 		return this.modules.selectRow.getSelectedData();
-	}
-};
-
-Tabulator.prototype.selectCell = function(cells){
-	if(this.modExists("selectCell", true)){
-		this.modules.selectCell.selectCells(cells);
-	}
-};
-
-Tabulator.prototype.deselectCell = function(cells){
-	if(this.modExists("selectCell", true)){
-		this.modules.selectCell.deselectCells(cells);
-	}
-};
-
-Tabulator.prototype.toggleSelectCell = function(cell){
-	if(this.modExists("selectCell", true)){
-		this.modules.selectCell.toggleCell(cell);
-	}
-};
-
-Tabulator.prototype.getSelectedCells = function(){
-	if(this.modExists("selectCell", true)){
-		return this.modules.selectCell.getSelectedCells();
 	}
 };
 
