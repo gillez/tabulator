@@ -1,4 +1,4 @@
-/* Tabulator v4.1.4 (c) Oliver Folkerd */
+/* Tabulator v4.1.5 (c) Oliver Folkerd */
 
 var ResizeColumns = function ResizeColumns(table) {
 	this.table = table; //hold Tabulator object
@@ -126,7 +126,7 @@ ResizeColumns.prototype._mouseDown = function (e, column) {
 			self.table.modules.persistence.save("columns");
 		}
 
-		self.table.options.columnResized.call(self.table, self.startColumn.getComponent());
+		self.table.options.columnResized.call(self.table, column.getComponent());
 	}
 
 	e.stopPropagation(); //prevent resize from interfereing with movable columns

@@ -1,6 +1,6 @@
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-/* Tabulator v4.1.4 (c) Oliver Folkerd */
+/* Tabulator v4.1.5 (c) Oliver Folkerd */
 
 var Edit = function Edit(table) {
 	this.table = table; //hold Tabulator object
@@ -345,7 +345,7 @@ Edit.prototype.editors = {
 	textarea: function textarea(cell, onRendered, success, cancel, editorParams) {
 		var self = this,
 		    cellValue = cell.getValue(),
-		    value = String(typeof cellValue == "null" || typeof cellValue == "undefined" ? "" : cellValue),
+		    value = String(cellValue !== null && cellValue !== "undefined" ? cellValue : ""),
 		    count = (value.match(/(?:\r\n|\r|\n)/g) || []).length + 1,
 		    input = document.createElement("textarea"),
 		    scrollHeight = 0;

@@ -1,6 +1,6 @@
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-/* Tabulator v4.1.4 (c) Oliver Folkerd */
+/* Tabulator v4.1.5 (c) Oliver Folkerd */
 
 var ColumnCalcs = function ColumnCalcs(table) {
 	this.table = table; //hold Tabulator object
@@ -259,6 +259,9 @@ ColumnCalcs.prototype.generateRow = function (pos, data) {
 						params: {}
 					};
 				}
+
+				//ensure css class defintion is replicated to calculation cell
+				self.genColumn.definition.cssClass = column.definition.cssClass;
 
 				//generate cell and assign to correct column
 				var cell = new Cell(self.genColumn, row);

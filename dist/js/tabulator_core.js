@@ -1,4 +1,4 @@
-/* Tabulator v4.1.4 (c) Oliver Folkerd */
+/* Tabulator v4.1.5 (c) Oliver Folkerd */
 
 'use strict';
 
@@ -1495,7 +1495,9 @@ Column.prototype._getNestedData = function (data) {
 
 //flat field set
 Column.prototype._setFlatData = function (data, value) {
-	data[this.field] = value;
+	if (this.field) {
+		data[this.field] = value;
+	}
 };
 
 //nested field set
@@ -2695,7 +2697,7 @@ RowManager.prototype.filterRefresh = function () {
 			table.modules.page.reset(true);
 			table.modules.page.setPage(1).then(function () {}).catch(function () {});
 		} else if (options.ajaxProgressiveLoad) {
-			table.modules.ajax.loadData();
+			table.modules.ajax.loadData().then(function () {}).catch(function () {});
 		} else {
 			//assume data is url, make ajax call to url to get data
 			this._genRemoteRequest();
@@ -2718,7 +2720,7 @@ RowManager.prototype.sorterRefresh = function () {
 			table.modules.page.reset(true);
 			table.modules.page.setPage(1).then(function () {}).catch(function () {});
 		} else if (options.ajaxProgressiveLoad) {
-			table.modules.ajax.loadData();
+			table.modules.ajax.loadData().then(function () {}).catch(function () {});
 		} else {
 			//assume data is url, make ajax call to url to get data
 			this._genRemoteRequest();
@@ -3061,30 +3063,34 @@ RowManager.prototype.renderTable = function () {
 
 //simple render on heightless table
 RowManager.prototype._simpleRender = function () {
-	var self = this,
-	    element = this.tableElement;
+	this._clearVirtualDom();
 
-	self._clearVirtualDom();
-
-	if (self.displayRowsCount) {
-
-		var onlyGroupHeaders = true;
-
-		self.getDisplayRows().forEach(function (row, index) {
-			self.styleRow(row, index);
-			element.appendChild(row.getElement());
-			row.initialize(true);
-
-			if (row.type !== "group") {
-				onlyGroupHeaders = false;
-			}
-		});
-
-		if (onlyGroupHeaders) {
-			element.style.minWidth = self.table.columnManager.getWidth() + "px";
-		}
+	if (this.displayRowsCount) {
+		this.checkClassicModeGroupHeaderWidth();
 	} else {
-		self.renderEmptyScroll();
+		this.renderEmptyScroll();
+	}
+};
+
+RowManager.prototype.checkClassicModeGroupHeaderWidth = function () {
+	var self = this,
+	    element = this.tableElement,
+	    onlyGroupHeaders = true;
+
+	self.getDisplayRows().forEach(function (row, index) {
+		self.styleRow(row, index);
+		element.appendChild(row.getElement());
+		row.initialize(true);
+
+		if (row.type !== "group") {
+			onlyGroupHeaders = false;
+		}
+	});
+
+	if (onlyGroupHeaders) {
+		element.style.minWidth = self.table.columnManager.getWidth() + "px";
+	} else {
+		element.style.minWidth = "";
 	}
 };
 
@@ -3968,7 +3974,8 @@ Row.prototype.setData = function (data) {
 Row.prototype.updateData = function (data) {
 	var _this5 = this;
 
-	var self = this;
+	var self = this,
+	    visible = Tabulator.prototype.helpers.elVisible(this.element);
 
 	return new Promise(function (resolve, reject) {
 
@@ -3993,12 +4000,16 @@ Row.prototype.updateData = function (data) {
 			if (cell) {
 				if (cell.getValue() != data[attrname]) {
 					cell.setValueProcessData(data[attrname]);
+
+					if (visible) {
+						cell.cellRendered();
+					}
 				}
 			}
 		}
 
 		//Partial reinitialization if visible
-		if (Tabulator.prototype.helpers.elVisible(_this5.element)) {
+		if (visible) {
 			self.normalizeHeight();
 
 			if (self.table.options.rowFormatter) {
@@ -4493,7 +4504,10 @@ Cell.prototype._generateContents = function () {
 				}this.element.appendChild(val);
 			} else {
 				this.element.innerHTML = "";
-				console.warn("Format Error - Formatter has returned a type of object, the only valid formatter object return is an instance of Node, the formatter returned:", val);
+
+				if (val != null) {
+					console.warn("Format Error - Formatter has returned a type of object, the only valid formatter object return is an instance of Node, the formatter returned:", val);
+				}
 			}
 			break;
 		case "undefined":
@@ -5378,7 +5392,7 @@ Tabulator.prototype._loadInitialData = function () {
 				self.rowManager.setData(self.options.data);
 			} else {
 				if ((self.options.ajaxURL || self.options.ajaxURLGenerator) && self.modExists("ajax")) {
-					self.modules.ajax.loadData();
+					self.modules.ajax.loadData().then(function () {}).catch(function () {});
 				} else {
 					self.rowManager.setData(self.options.data);
 				}
@@ -5395,7 +5409,7 @@ Tabulator.prototype._loadInitialData = function () {
 			self.rowManager.setData(self.options.data);
 		} else {
 			if ((self.options.ajaxURL || self.options.ajaxURLGenerator) && self.modExists("ajax")) {
-				self.modules.ajax.loadData();
+				self.modules.ajax.loadData().then(function () {}).catch(function () {});
 			} else {
 				self.rowManager.setData(self.options.data);
 			}

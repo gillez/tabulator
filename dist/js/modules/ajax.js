@@ -1,6 +1,6 @@
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-/* Tabulator v4.1.4 (c) Oliver Folkerd */
+/* Tabulator v4.1.5 (c) Oliver Folkerd */
 
 var Ajax = function Ajax(table) {
 
@@ -24,10 +24,18 @@ var Ajax = function Ajax(table) {
 
 //initialize setup options
 Ajax.prototype.initialize = function () {
+	var template;
+
 	this.loaderElement.appendChild(this.msgElement);
 
 	if (this.table.options.ajaxLoaderLoading) {
-		this.loadingElement = this.table.options.ajaxLoaderLoading;
+		if (typeof this.table.options.ajaxLoaderLoading == "string") {
+			template = document.createElement('template');
+			template.innerHTML = this.table.options.ajaxLoaderLoading.trim();
+			this.loadingElement = template.content.firstChild;
+		} else {
+			this.loadingElement = this.table.options.ajaxLoaderLoading;
+		}
 	}
 
 	this.loaderPromise = this.table.options.ajaxRequestFunc || this.defaultLoaderPromise;
@@ -172,10 +180,13 @@ Ajax.prototype._loadDataStandard = function (inPosition) {
 
 	return new Promise(function (resolve, reject) {
 		_this.sendRequest(inPosition).then(function (data) {
-			_this.table.rowManager.setData(data, inPosition);
-			resolve();
+			_this.table.rowManager.setData(data, inPosition).then(function () {
+				resolve();
+			}).catch(function (e) {
+				reject(e);
+			});
 		}).catch(function (e) {
-			reject();
+			reject(e);
 		});
 	});
 };

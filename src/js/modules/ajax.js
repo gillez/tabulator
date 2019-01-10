@@ -20,10 +20,18 @@ var Ajax = function(table){
 
 //initialize setup options
 Ajax.prototype.initialize = function(){
+	var template;
+
 	this.loaderElement.appendChild(this.msgElement);
 
 	if(this.table.options.ajaxLoaderLoading){
-		this.loadingElement = this.table.options.ajaxLoaderLoading;
+		if(typeof this.table.options.ajaxLoaderLoading == "string"){
+			template = document.createElement('template');
+			template.innerHTML = this.table.options.ajaxLoaderLoading.trim();
+			this.loadingElement = template.content.firstChild;
+		}else{
+			this.loadingElement = this.table.options.ajaxLoaderLoading;
+		}
 	}
 
 	this.loaderPromise = this.table.options.ajaxRequestFunc || this.defaultLoaderPromise;
@@ -168,10 +176,17 @@ Ajax.prototype._loadDataStandard = function(inPosition){
 	return new Promise((resolve, reject)=>{
 		this.sendRequest(inPosition)
 		.then((data)=>{
-			this.table.rowManager.setData(data, inPosition);
-			resolve();
+			this.table.rowManager.setData(data, inPosition)
+			.then(()=>{
+				resolve();
+			})
+			.catch((e)=>{
+				reject(e)
+			});
 		})
-		.catch((e)=>{reject()});
+		.catch((e)=>{
+			reject(e)
+		});
 	});
 };
 

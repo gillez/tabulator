@@ -261,24 +261,16 @@ ColumnCalcs.prototype.generateRow = function(pos, data){
 					};
 				}
 
-				if (column.definition.cssClass) {
-					oldCssClass = self.genColumn.definition.cssClass;
-					self.genColumn.definition.cssClass = self.genColumn.definition.cssClass ?
-						[self.genColumn.definition.cssClass, column.definition.cssClass].join(" ") :
-						column.definition.cssClass;
-				}
+				//ensure css class defintion is replicated to calculation cell
+				self.genColumn.definition.cssClass = column.definition.cssClass;
 
-			//generate cell and assign to correct column
+				//generate cell and assign to correct column
 				var cell = new Cell(self.genColumn, row);
 				cell.column = column;
 				cell.setWidth(column.width);
 
 				column.cells.push(cell);
 				cells.push(cell);
-
-				if (column.definition.cssClass) {
-					self.genColumn.definition.cssClass = oldCssClass;
-				}
 			}
 		});
 
