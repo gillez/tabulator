@@ -239,7 +239,6 @@ ColumnCalcs.prototype.generateRow = function(pos, data){
 	row.generateCells = function(){
 
 		var cells = [];
-		var oldCssClass;
 
 		self.table.columnManager.columnsByIndex.forEach(function(column){
 
