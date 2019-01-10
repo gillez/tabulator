@@ -32,8 +32,6 @@ $rowHoverBackground:#bbb !default; //row background color on hover
 $rowSelectedBackground: #9ABCEA !default; //row background color when selected
 $rowSelectedBackgroundHover: #769BCC !default;//row background color when selected and hovered
 
-$cellSelectedBackground: #9ABCEA !default; // cell background color when selected
-
 $editBoxColor:#1D68CD !default; //border color for edit boxes
 $errorColor:#dd0000 !default; //error indication
 
@@ -668,10 +666,6 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 		white-space:nowrap;
 		overflow:hidden;
 		text-overflow:ellipsis;
-
-		&.tabulator-selected{
-			background-color:$cellSelectedBackground;
-		}
 
 		&.tabulator-editing{
 			border:1px solid  $editBoxColor;
