@@ -27,6 +27,10 @@ ColumnComponent.prototype.getCells = function(){
 	return cells;
 };
 
+ColumnComponent.prototype.getPosition = function() {
+	return this._column.table.columnManager.findColumnIndex(this._column);
+}
+
 ColumnComponent.prototype.getVisibility = function(){
 	return this._column.visible;
 };
@@ -80,6 +84,30 @@ ColumnComponent.prototype.getParentColumn = function(){
 };
 
 
+ColumnComponent.prototype.select = function(){
+	if(this._column.table.modExists("selectColumn", true)){
+		this._column.table.modules.selectColumn.selectColumns(this._column);
+	}
+};
+
+ColumnComponent.prototype.deselect = function(){
+	if(this._column.table.modExists("selectColumn", true)){
+		this._column.table.modules.selectColumn.deselectColumns(this._column);
+	}
+};
+
+ColumnComponent.prototype.toggleSelect = function(){
+	if(this._column.table.modExists("selectColumn", true)){
+		this._column.table.modules.selectColumn.toggleColumn(this._column);
+	}
+};
+
+ColumnComponent.prototype.isSelected = function(){
+	if(this._column.table.modExists("selectColumn", true)){
+		return this._column.table.modules.selectColumn.isColumnSelected(this._column);
+	}
+};
+
 ColumnComponent.prototype._getSelf = function(){
 	return this._column;
 };
@@ -108,6 +136,14 @@ ColumnComponent.prototype.setHeaderFilterValue = function(value){
 	if(this._column.table.modExists("filter", true)){
 		this._column.table.modules.filter.setHeaderFilterValue(this._column, value);
 	}
+};
+
+ColumnComponent.prototype.getNextColumn = function(){
+	return this._column.nextColumn();
+};
+
+ColumnComponent.prototype.getPrevColumn = function(){
+	return this._column.prevColumn();
 };
 
 
@@ -446,6 +482,11 @@ Column.prototype._buildColumnHeader = function(){
 	def = self.definition,
 	table = self.table,
 	sortable;
+
+	//set column selector
+	if(self.table.options.selectableColumns && self.table.modExists("selectColumn")){
+		self.table.modules.selectColumn.initializeColumn(this);
+	}
 
 	//set column sorter
 	if(table.modExists("sort")){
@@ -1003,6 +1044,16 @@ Column.prototype.delete = function(){
 	this.table.columnManager.deregisterColumn(this);
 };
 
+Column.prototype.nextColumn = function(){
+	var col = this.table.columnManager.nextColumn(this);
+	return col ? col.getComponent() : false;
+};
+
+Column.prototype.prevColumn = function(){
+	var col = this.table.columnManager.prevColumn(this);
+	return col ? col.getComponent() : false;
+};
+
 //////////////// Cell Management /////////////////
 
 //generate cell for this column
@@ -1010,6 +1061,13 @@ Column.prototype.generateCell = function(row){
 	var self = this;
 
 	var cell = new Cell(self, row);
+
+	// add selected class if this column is selected.
+	if(this.table.modExists("selectColumn")){
+		if (this.table.modules.selectColumn.isColumnSelected(this)) {
+			this.table.modules.selectColumn.addSelectedClass(cell)
+		}
+	}
 
 	this.cells.push(cell);
 

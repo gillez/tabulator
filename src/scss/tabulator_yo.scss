@@ -563,7 +563,14 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 	}
 
 	&.tabulator-selected{
-		background-color:$rowSelectedBackground;
+		&.tabulator-col-unselectable{
+			background-color:$rowSelectedBackground;
+		}
+
+		//cell element in selected columns, within selected rows
+		&.tabulator-col-selectable .tabulator-cell.tabulator-col-selected{
+			background-color:$rowSelectedBackground;
+		}
 	}
 
 	&.tabulator-selected:hover{

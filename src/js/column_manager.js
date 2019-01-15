@@ -373,7 +373,7 @@ ColumnManager.prototype.scrollToColumn = function(column, position, ifVisible){
 
 				offset = colEl.offsetLeft;
 
-				if(offset > 0 && offset + colEl.offsetWidth < this.element.clientWidth){
+				if(offset > 0 && offset + colEl.offsetWidth <= this.element.clientWidth){
 					return false;
 				}
 			}
@@ -395,13 +395,26 @@ ColumnManager.prototype.scrollToColumn = function(column, position, ifVisible){
 	});
 };
 
+ColumnManager.prototype.nextColumn = function(column){
+	var index = this.findColumnIndex(column);
+
+	index++;
+	return (index < this.columnsByIndex.length) ? this.columnsByIndex[index] : false;
+};
+
+ColumnManager.prototype.prevColumn = function(column){
+	var index = this.findColumnIndex(column);
+
+	index--;
+	return (index >= 0) ? this.columnsByIndex[index] : false;
+};
+
 //////////////// Cell Management /////////////////
 
 ColumnManager.prototype.generateCells = function(row){
 	var self = this;
 
 	var cells = [];
-
 	self.columnsByIndex.forEach(function(column){
 		cells.push(column.generateCell(row));
 	});

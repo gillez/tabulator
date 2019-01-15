@@ -101,6 +101,7 @@ Tabulator.prototype.defaultOptions = {
 	selectableRollingSelection:true, //roll selection once maximum number of selectable rows is reached
 	selectablePersistence:true, // maintain selection when table view is updated
 	selectableCheck:function(data, row){return true;}, //check wheather row is selectable
+	selectableColumns:true,		// Columns are selectable (if false, select whole rows, not individual columns)
 
 	headerFilterPlaceholder: false, //placeholder text to display in header filters
 
@@ -217,6 +218,9 @@ Tabulator.prototype.defaultOptions = {
 	columnResized:function(){},
 	columnTitleChanged:function(){},
 	columnVisibilityChanged:function(){},
+	columnSelectionChanged:function(){},
+	columnSelected:function(){},
+	columnDeselected:function(){},
 
 	//HTML iport callbacks
 	htmlImporting:function(){},
@@ -486,6 +490,10 @@ Tabulator.prototype._buildElement = function(){
 
 	if(this.modExists("selectRow")){
 		mod.selectRow.clearSelectionData(true);
+	}
+
+	if(this.modExists("selectColumn")){
+		mod.selectColumn.clearSelectionData(true);
 	}
 
 	if(options.autoResize && this.modExists("resizeTable")){
@@ -1013,6 +1021,19 @@ Tabulator.prototype.getColumn = function(field){
 	}
 };
 
+//get column object by position (column index)
+Tabulator.prototype.getColumnFromPosition = function(position){
+	// Todo: this function should take a boolean argument to tell it to account for hidden columns,
+	// as getRowFromPosition does.
+	var columns = this.columnManager.getRealColumns();
+	if (position >= 0 && position < columns.length) {
+		return columns[position].getComponent();
+	} else {
+		console.warn("Find Error - No matching column found:", position);
+		return false;
+	}
+};
+
 Tabulator.prototype.getColumnDefinitions = function(){
 	return this.columnManager.getDefinitionTree();
 };
@@ -1258,15 +1279,25 @@ Tabulator.prototype.selectRow = function(rows){
 	}
 };
 
-Tabulator.prototype.deselectRow = function(rows){
+Tabulator.prototype.deselectRow = function(rows, checkColumns){
 	if(this.modExists("selectRow", true)){
 		this.modules.selectRow.deselectRows(rows);
+
+		// If no more rows selected, deselect columns.
+		if(checkColumns && this.modExists("selectColumn", true) && this.modules.selectRow.selectedRows.length === 0) {
+			this.modules.selectColumn.deselectColumns();
+		}
 	}
 };
 
-Tabulator.prototype.toggleSelectRow = function(row){
+Tabulator.prototype.toggleSelectRow = function(row, checkColumns){
 	if(this.modExists("selectRow", true)){
 		this.modules.selectRow.toggleRow(row);
+
+		// If no rows selected after toggle, deselect columns.
+		if(checkColumns && this.modExists("selectColumn", true) && this.modules.selectRow.selectedRows.length === 0) {
+			this.modules.selectColumn.deselectColumns();
+		}
 	}
 };
 
@@ -1279,6 +1310,40 @@ Tabulator.prototype.getSelectedRows = function(){
 Tabulator.prototype.getSelectedData = function(){
 	if(this.modExists("selectRow", true)){
 		return this.modules.selectRow.getSelectedData();
+	}
+};
+
+Tabulator.prototype.selectColumn = function(columns){
+	if(this.modExists("selectColumn", true)){
+		this.modules.selectColumn.selectColumns(columns);
+	}
+};
+
+Tabulator.prototype.deselectColumn = function(columns, checkRows){
+	if(this.modExists("selectColumn", true)){
+		this.modules.selectColumn.deselectColumns(columns);
+
+		// If required, check whether any columns are now selected and, if not, deselect rows.
+		if(checkRows && this.modExists("selectRow", true) && this.modules.selectColumn.selectedColumns.length === 0) {
+			this.modules.selectRow.deselectRows();
+		}
+	}
+};
+
+Tabulator.prototype.toggleSelectColumn = function(column){
+	if(this.modExists("selectColumn", true)){
+		this.modules.selectColumn.toggleColumn(column);
+
+		// If no columns selected after toggle, deselect rows.
+		if(this.modExists("selectRow", true) && this.modules.selectColumn.selectedColumns.length === 0) {
+			this.modules.selectRow.deselectRows();
+		}
+	}
+};
+
+Tabulator.prototype.getSelectedColumns = function(){
+	if(this.modExists("selectColumn", true)){
+		return this.modules.selectColumn.getSelectedColumns();
 	}
 };
 

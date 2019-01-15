@@ -39,6 +39,14 @@ SelectRow.prototype.initializeRow = function(row){
 		element.classList.add("tabulator-selectable");
 		element.classList.remove("tabulator-unselectable");
 
+		if (self.table.options.selectableColumns){
+			element.classList.add("tabulator-col-selectable");
+			element.classList.remove("tabulator-col-unselectable");
+		} else {
+			element.classList.add("tabulator-col-unselectable");
+			element.classList.remove("tabulator-col-selectable");
+		}
+
 		if(self.table.options.selectable && self.table.options.selectable != "highlight"){
 			if(self.table.options.selectableRangeMode && self.table.options.selectableRangeMode === "click"){
 				element.addEventListener("click", function(e){

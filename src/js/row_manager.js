@@ -221,7 +221,7 @@ RowManager.prototype.scrollToRow = function(row, position, ifVisible){
 				if(Tabulator.prototype.helpers.elVisible(rowEl)){
 					offset = Tabulator.prototype.helpers.elOffset(rowEl).top - Tabulator.prototype.helpers.elOffset(this.element).top;
 
-					if(offset > 0 && offset < this.element.clientHeight - rowEl.offsetHeight){
+					if(offset > 0 && offset <= this.element.clientHeight - rowEl.offsetHeight){
 						return false;
 					}
 				}
