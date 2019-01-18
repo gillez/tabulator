@@ -23,12 +23,13 @@ $sortArrowInactive: #bbb !default;
 //row themeing
 $rowBackgroundColor:#fff !default; //table row background color
 $rowAltBackgroundColor:#EFEFEF !default; //table row background color
-// YoYotta customisation
-// $rowBorderColor:#aaa !default; //table border color
 $rowBorderColor:#bbb !default; //table border color
 $rowTextColor:#333 !default; //table text color
 
-$rowSelectedBackground: #9ABCEA !default; //row background color when selected
+$rowSelectedBorderNoFocus: #989898 !default;
+$rowSelectedBorderFocus: #1D68CD !default;
+$rowSelectedBackgroundNoFocus: #C0C0C0 !default; //row background color when selected
+$rowSelectedBackgroundFocus: #9ABCEA !default; //row background color when selected
 
 $editBoxColor:#1D68CD !default; //border color for edit boxes
 $errorColor:#dd0000 !default; //error indication
@@ -339,10 +340,65 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 		overflow:auto;
 		-webkit-overflow-scrolling: touch;
 
+		.tabulator-row{
+			.tabulator-cell{
+				border-top: 2px solid transparent;
+			}
+			&:last-child .tabulator-cell{
+				border-bottom: 2px solid transparent;
+			}
+		} 
+		  		  
 		&:focus{
 			outline: none;
+
+			.tabulator-row{
+				&.tabulator-selected{
+					&.tabulator-col-unselectable{
+						background-color:$rowSelectedBackgroundFocus;
+					}
+			
+					//cell element in selected columns, within selected rows
+					&.tabulator-col-selectable .tabulator-cell.tabulator-col-selected{
+						background-color:$rowSelectedBackgroundFocus;
+					}
+				}
+
+				&:not(.tabulator-selected)+.tabulator-selected  .tabulator-cell,
+				&.tabulator-selected+:not(.tabulator-selected)  .tabulator-cell,
+				&.tabulator-selected:first-child .tabulator-cell {
+					border-top: 2px solid $rowSelectedBorderFocus;
+				}
+				&.tabulator-selected:last-child .tabulator-cell {
+					border-bottom: 2px solid $rowSelectedBorderFocus;
+				}
+			}
 		}
 
+		&:not(:focus){
+			.tabulator-row{
+				&.tabulator-selected{
+					&.tabulator-col-unselectable{
+						background-color:$rowSelectedBackgroundNoFocus;
+					}
+			
+					//cell element in selected columns, within selected rows
+					&.tabulator-col-selectable .tabulator-cell.tabulator-col-selected{
+						background-color:$rowSelectedBackgroundNoFocus;
+					}
+				}
+
+				&:not(.tabulator-selected)+.tabulator-selected  .tabulator-cell,
+				&.tabulator-selected+:not(.tabulator-selected)  .tabulator-cell,
+				&.tabulator-selected:first-child .tabulator-cell {
+					border-top: 2px solid $rowSelectedBorderNoFocus;
+				}
+				&.tabulator-selected:last-child .tabulator-cell {
+					border-bottom: 2px solid $rowSelectedBorderNoFocus;
+				}
+			}
+		}
+	
 		//default placeholder element
 		.tabulator-placeholder{
 			box-sizing:border-box;
@@ -562,17 +618,7 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 		cursor: pointer;
 	}
 
-	&.tabulator-selected{
-		&.tabulator-col-unselectable{
-			background-color:$rowSelectedBackground;
-		}
-
-		//cell element in selected columns, within selected rows
-		&.tabulator-col-selectable .tabulator-cell.tabulator-col-selected{
-			background-color:$rowSelectedBackground;
-		}
-	}
-
+	// Selected background now moved to tabulator-tableHolder and different when the table is focused or not focused.
 	&.tabulator-selected:hover{
 		cursor: pointer;
 	}
@@ -660,7 +706,6 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 		position: relative;
 		box-sizing:border-box;
 		// YoYotta customisation
-		// padding:4px;
 		padding: 4px 0;
 		border-right:1px solid $rowBorderColor;
 		vertical-align:middle;
