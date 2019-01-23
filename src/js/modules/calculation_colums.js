@@ -268,6 +268,12 @@ ColumnCalcs.prototype.generateRow = function(pos, data){
 				cell.column = column;
 				cell.setWidth(column.width);
 
+				if (typeof column.definition[pos + "CalcClick"] == "function") {
+					cell.getElement().addEventListener("click", function(e){
+						column.definition[pos + "CalcClick"](e, column);
+					});
+				}
+
 				column.cells.push(cell);
 				cells.push(cell);
 			}
