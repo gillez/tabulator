@@ -347,8 +347,8 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 			&:last-child .tabulator-cell{
 				border-bottom: 2px solid transparent;
 			}
-		} 
-		  		  
+		}
+
 		&:focus{
 			outline: none;
 
@@ -357,7 +357,7 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 					&.tabulator-col-unselectable{
 						background-color:$rowSelectedBackgroundFocus;
 					}
-			
+
 					//cell element in selected columns, within selected rows
 					&.tabulator-col-selectable .tabulator-cell.tabulator-col-selected{
 						background-color:$rowSelectedBackgroundFocus;
@@ -381,7 +381,7 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 					&.tabulator-col-unselectable{
 						background-color:$rowSelectedBackgroundNoFocus;
 					}
-			
+
 					//cell element in selected columns, within selected rows
 					&.tabulator-col-selectable .tabulator-cell.tabulator-col-selected{
 						background-color:$rowSelectedBackgroundNoFocus;
@@ -398,7 +398,7 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 				}
 			}
 		}
-	
+
 		//default placeholder element
 		.tabulator-placeholder{
 			box-sizing:border-box;
