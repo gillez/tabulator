@@ -158,7 +158,6 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 					border-right: 6px solid transparent;
 					border-bottom: 6px solid $sortArrowInactive;
 				}
-
 			}
 
 			//complex header column group
@@ -230,8 +229,7 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 
 				&[aria-sort="none"]{
 					.tabulator-col-content .tabulator-arrow{
-						border-top: none;
-						border-bottom: 6px solid $sortArrowInactive;
+						display: none;
 					}
 				}
 
