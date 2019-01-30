@@ -1,9 +1,7 @@
 
 //Main Theme Variables
-// YoYotta customisation
-// $backgroundColor: #888 !default; //background color of tabulator
+// $borderColor:#999 !default; //border to tabulator
 $backgroundColor: #FFFFFF !default;
-$borderColor:#999 !default; //border to tabulator
 $textSize:14px !default; //table text size
 
 //header themeing
@@ -47,7 +45,6 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 .tabulator{
 	position: relative;
 
-	// YoYotta customisation
 	// border: 1px solid $borderColor;
 
 	background-color: $backgroundColor;
@@ -61,6 +58,14 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 	-ms-transform: translatez(0);
 	-o-transform: translatez(0);
 	transform: translatez(0);
+
+	// Disalbe default HTML selection on table (e.g. CMD-A action, or mouse dragging).
+	-webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none;   /* Chrome/Safari/Opera */
+	-khtml-user-select: none;    /* Konqueror */
+	-moz-user-select: none;      /* Firefox */
+	-ms-user-select: none;       /* Internet Explorer/Edge */
+	user-select: none;
 
 	&[tabulator-layout="fitDataFill"]{
 		.tabulator-tableHolder{
@@ -125,7 +130,7 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 
 					white-space: nowrap;
 					overflow: hidden;
-					text-overflow: ellipsis;
+					text-overflow: clip;
 					vertical-align:bottom;
 
 					//element to hold title editor
@@ -762,6 +767,45 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 					margin-top:2px;
 					background:#666;
 				}
+			}
+		}
+
+		&.tabulator-cell-action  {
+			padding: 2px 0;
+		}
+
+		.yotable-text {
+			margin-left: 4px;
+			text-overflow: clip;
+		  
+			&.text-right {
+				margin-left: 0;
+				margin-right: 4px;
+			}
+		}
+
+		.tagBubble {
+			padding: 1px;
+			display: inline-block;
+		}
+
+		.actionClassContainer {
+			text-align: center;
+			padding: 0;
+		}
+		.actionSummaryContainer {
+			width:100%;
+			text-align: center;
+			padding: 0;
+
+			.actionSummaryCheckedContainer,
+			.actionSummaryClearedContainer {
+				width: 50%;
+				display: inline-block;
+			}
+
+			.tagBubble {
+				padding: 0;
 			}
 		}
 
