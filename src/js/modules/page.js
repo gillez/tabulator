@@ -12,6 +12,8 @@ var Page = function(table){
 
 	this.displayIndex = 0; //index in display pipeline
 
+	this.pageSizes = [];
+
 	this.createElements();
 };
 
@@ -43,11 +45,59 @@ Page.prototype.createElements = function(){
 
 	this.lastBut = button.cloneNode(true);
 	this.lastBut.setAttribute("data-page", "last");
+
+	if(this.table.options.paginationSizeSelector){
+		this.pageSizeSelect = document.createElement("select");
+		this.pageSizeSelect.classList.add("tabulator-page-size");
+	}
+
+};
+
+Page.prototype.generatePageSizeSelectList = function(){
+	var pageSizes = [];
+
+	if(this.pageSizeSelect){
+
+		if(Array.isArray(this.table.options.paginationSizeSelector)){
+			pageSizes = this.table.options.paginationSizeSelector;
+			this.pageSizes = pageSizes;
+
+			if(this.pageSizes.indexOf(this.size) == -1){
+				pageSizes.unshift(this.size);
+			}
+		}else{
+
+			if(this.pageSizes.indexOf(this.size) == -1){
+				pageSizes = [];
+
+				for (let i = 1; i < 5; i++){
+					pageSizes.push(this.size * i);
+				}
+
+				this.pageSizes = pageSizes;
+			}else{
+				pageSizes = this.pageSizes;
+			}
+		}
+
+		while(this.pageSizeSelect.firstChild) this.pageSizeSelect.removeChild(this.pageSizeSelect.firstChild);
+
+		pageSizes.forEach((item) => {
+			var itemEl = document.createElement("option");
+			itemEl.value = item;
+			itemEl.innerHTML = item;
+
+			this.pageSizeSelect.appendChild(itemEl);
+		});
+
+		this.pageSizeSelect.value = this.size;
+	}
 };
 
 //setup pageination
 Page.prototype.initialize = function(hidden){
-	var self = this;
+	var self = this,
+	pageSelectLabel;
 
 	//update param names
 	for(let key in self.table.options.paginationDataSent){
@@ -118,6 +168,24 @@ Page.prototype.initialize = function(hidden){
 		self.element = self.table.options.paginationElement;
 	}
 
+	if(this.pageSizeSelect){
+		pageSelectLabel = document.createElement("label");
+
+		self.table.modules.localize.bind("pagination|page_size", function(value){
+			self.pageSizeSelect.setAttribute("aria-label", value);
+			self.pageSizeSelect.setAttribute("title", value);
+			pageSelectLabel.innerHTML = value;
+		});
+
+		self.element.appendChild(pageSelectLabel);
+		self.element.appendChild(self.pageSizeSelect);
+
+		self.pageSizeSelect.addEventListener("change", function(e){
+			self.setPageSize(self.pageSizeSelect.value)
+			self.setPage(1).then(()=>{}).catch(()=>{});
+		});
+	}
+
 	//append to DOM
 	self.element.appendChild(self.firstBut);
 	self.element.appendChild(self.prevBut);
@@ -133,6 +201,8 @@ Page.prototype.initialize = function(hidden){
 	self.mode = self.table.options.pagination;
 	self.size = self.table.options.paginationSize || Math.floor(self.table.rowManager.getElement().clientHeight / 24);
 	self.count = self.table.options.paginationButtonCount;
+
+	self.generatePageSizeSelectList();
 };
 
 Page.prototype.initializeProgressive = function(mode){
@@ -173,6 +243,9 @@ Page.prototype.reset = function(force){
 
 //set the maxmum page
 Page.prototype.setMaxPage = function(max){
+
+	max = parseInt(max);
+
 	this.max = max || 1;
 
 	if(this.page > this.max){
@@ -184,6 +257,9 @@ Page.prototype.setMaxPage = function(max){
 //set current page number
 Page.prototype.setPage = function(page){
 	return new Promise((resolve, reject)=>{
+
+		page = parseInt(page);
+
 		if(page > 0 && page <= this.max){
 			this.page = page;
 			this.trigger()
@@ -200,9 +276,41 @@ Page.prototype.setPage = function(page){
 	});
 };
 
+Page.prototype.setPageToRow = function(row){
+
+	return new Promise((resolve, reject)=>{
+
+		var rows = this.table.rowManager.getDisplayRows(this.displayIndex - 1);
+		var index = rows.indexOf(row);
+
+		if(index > -1){
+			var page = Math.ceil((index + 1) / this.size);
+
+			this.setPage(page)
+			.then(()=>{
+				resolve();
+			})
+			.catch(()=>{
+				reject();
+			});
+		}else{
+			console.warn("Pagination Error - Requested row is not visible");
+			reject();
+		}
+	});
+};
+
+
 Page.prototype.setPageSize = function(size){
+	size = parseInt(size);
+
 	if(size > 0){
 		this.size = size;
+	}
+
+	if(this.pageSizeSelect){
+		// this.pageSizeSelect.value = size;
+		this.generatePageSizeSelectList();
 	}
 };
 

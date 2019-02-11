@@ -1,6 +1,6 @@
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-/* Tabulator v4.1.5 (c) Oliver Folkerd */
+/* Tabulator v4.2.0 (c) Oliver Folkerd */
 
 var DataTree = function DataTree(table) {
 	this.table = table;
@@ -9,6 +9,7 @@ var DataTree = function DataTree(table) {
 	this.collapseEl = null;
 	this.expandEl = null;
 	this.branchEl = null;
+	this.elementField = false;
 
 	this.startOpen = function () {};
 
@@ -21,6 +22,7 @@ DataTree.prototype.initialize = function () {
 
 	this.field = options.dataTreeChildField;
 	this.indent = options.dataTreeChildIndent;
+	this.elementField = options.dataTreeElementColumn;
 
 	if (options.dataTreeBranchElement) {
 
@@ -100,7 +102,7 @@ DataTree.prototype.initializeRow = function (row) {
 };
 
 DataTree.prototype.layoutRow = function (row) {
-	var cell = row.getCells()[0],
+	var cell = this.elementField ? row.getCell(this.elementField) : row.getCells()[0],
 	    el = cell.getElement(),
 	    config = row.modules.dataTree;
 
@@ -193,6 +195,7 @@ DataTree.prototype.getChildren = function (row) {
 	var _this3 = this;
 
 	var config = row.modules.dataTree,
+	    children = [],
 	    output = [];
 
 	if (config.children !== false && config.open) {
@@ -200,7 +203,17 @@ DataTree.prototype.getChildren = function (row) {
 			config.children = this.generateChildren(row);
 		}
 
-		config.children.forEach(function (child) {
+		if (this.table.modExists("filter")) {
+			children = this.table.modules.filter.filter(config.children);
+		} else {
+			children = config.children;
+		}
+
+		if (this.table.modExists("sort")) {
+			this.table.modules.sort.sort(children);
+		}
+
+		children.forEach(function (child) {
 			output.push(child);
 
 			var subChildren = _this3.getChildren(child);
@@ -300,6 +313,10 @@ DataTree.prototype.checkForRestyle = function (cell) {
 			cell.row.reinitialize();
 		}
 	}
+};
+
+DataTree.prototype.getChildField = function () {
+	return this.field;
 };
 
 Tabulator.prototype.registerModule("dataTree", DataTree);

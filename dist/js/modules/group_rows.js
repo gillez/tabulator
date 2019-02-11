@@ -1,4 +1,4 @@
-/* Tabulator v4.1.5 (c) Oliver Folkerd */
+/* Tabulator v4.2.0 (c) Oliver Folkerd */
 
 //public group object
 var GroupComponent = function GroupComponent(group) {
@@ -47,7 +47,7 @@ GroupComponent.prototype._getSelf = function () {
 };
 
 GroupComponent.prototype.getTable = function () {
-	return this._group.table;
+	return this._group.groupManager.table;
 };
 
 //////////////////////////////////////////////////
@@ -94,6 +94,11 @@ Group.prototype.createElements = function () {
 
 	this.arrowElement = document.createElement("div");
 	this.arrowElement.classList.add("tabulator-arrow");
+
+	//setup movable rows
+	if (this.groupManager.table.options.movableRows !== false && this.groupManager.table.modExists("moveRow")) {
+		this.groupManager.table.modules.moveRow.initializeGroupHeader(this);
+	}
 };
 
 Group.prototype.createValueGroups = function () {
@@ -292,7 +297,7 @@ Group.prototype.removeRow = function (row) {
 		this.rows.splice(index, 1);
 	}
 
-	if (!this.rows.length) {
+	if (!this.groupManager.table.options.groupValues && !this.rows.length) {
 		if (this.parent) {
 			this.parent.removeGroup(this);
 		} else {

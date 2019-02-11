@@ -47,6 +47,10 @@ Tabulator.prototype.defaultOptions = {
 
 	data:[], //default starting data
 
+	autoColumns:false, //build columns from data row structure
+
+	reactiveData:false, //enable data reactivity
+
 	nestedFieldSeparator:".", //seperatpr for nested data
 
 	tooltips: false, //Tool tip value
@@ -55,6 +59,7 @@ Tabulator.prototype.defaultOptions = {
 
 	initialSort:false, //initial sorting criteria
 	initialFilter:false, //initial filtering criteria
+	initialHeaderFilter:false, //initial header filtering criteria
 
 	columnHeaderSortMulti: true, //multiple or single column sorting
 
@@ -84,6 +89,7 @@ Tabulator.prototype.defaultOptions = {
 	downloadConfig:false,	//download config
 
 	dataTree:false, //enable data tree
+	dataTreeElementColumn:false,
 	dataTreeBranchElement: true, //show data tree branch element
 	dataTreeChildIndent:9, //data tree child indent in px
 	dataTreeChildField:"_children", //data tre column field to look for child rows
@@ -126,6 +132,7 @@ Tabulator.prototype.defaultOptions = {
 	pagination:false, //set pagination type
 	paginationSize:false, //set number of rows to a page
 	paginationButtonCount: 5, // set count of page button
+	paginationSizeSelector:false, //add pagination size selector element
 	paginationElement:false, //element to hold pagination numbers
 	paginationDataSent:{}, //pagination data sent to the server
 	paginationDataReceived:{}, //pagination data received from the server
@@ -192,6 +199,11 @@ Tabulator.prototype.defaultOptions = {
 	rowTap:false,
 	rowDblTap:false,
 	rowTapHold:false,
+	rowMouseEnter:false,
+	rowMouseLeave:false,
+	rowMouseOver:false,
+	rowMouseOut:false,
+	rowMouseMove:false,
 	rowAdded:function(){},
 	rowDeleted:function(){},
 	rowMoved:function(){},
@@ -209,6 +221,11 @@ Tabulator.prototype.defaultOptions = {
 	cellTap:false,
 	cellDblTap:false,
 	cellTapHold:false,
+	cellMouseEnter:false,
+	cellMouseLeave:false,
+	cellMouseOver:false,
+	cellMouseOut:false,
+	cellMouseMove:false,
 	cellEditing:function(){},
 	cellEdited:function(){},
 	cellEditCancelled:function(){},
@@ -346,7 +363,10 @@ Tabulator.prototype._create = function(){
 //clear pointers to objects in default config object
 Tabulator.prototype._clearObjectPointers = function(){
 	this.options.columns = this.options.columns.slice(0);
-	this.options.data = this.options.data.slice(0);
+
+	if(!this.options.reactiveData){
+		this.options.data = this.options.data.slice(0);
+	}
 };
 
 
@@ -370,6 +390,7 @@ Tabulator.prototype._buildElement = function(){
 		element.style.height = options.height;
 	}
 
+	this.columnManager.initialize();
 	this.rowManager.initialize();
 
 	this._detectBrowser();
@@ -469,8 +490,22 @@ Tabulator.prototype._buildElement = function(){
 		}
 
 		mod.filter.setFilter(filters);
-		// this.setFilter(filters);
 	}
+
+	if(options.initialHeaderFilter && this.modExists("filter", true)){
+		options.initialHeaderFilter.forEach((item) => {
+
+			var column = this.columnManager.findColumn(item.field);
+
+			if(column){
+				mod.filter.setHeaderFilterValue(column, item.value);
+			}else{
+				console.warn("Column Filter Error - No matching column found:", item.field);
+				return false;
+			}
+		});
+	}
+
 
 	if(this.modExists("ajax")){
 		mod.ajax.initialize();
@@ -549,6 +584,10 @@ Tabulator.prototype.destroy = function(){
 
 	Tabulator.prototype.comms.deregister(this); //deregister table from inderdevice communication
 
+	if(self.table.options.reactiveData && this.table.modExists("reactiveData", true)){
+		this.table.modules.reactiveData.unwatchData();
+	}
+
 	//clear row data
 	this.rowManager.rows.forEach(function(row){
 		row.wipe();
@@ -591,6 +630,50 @@ Tabulator.prototype._detectBrowser = function(){
 };
 
 ////////////////// Data Handling //////////////////
+
+//loca data from local file
+Tabulator.prototype.setDataFromLocalFile = function(extensions){
+
+	return new Promise((resolve, reject) => {
+		var input = document.createElement("input");
+		input.type = "file";
+		input.accept = extensions || ".json,application/json";
+
+		input.addEventListener("change", (e) => {
+			var file = input.files[0],
+			reader = new FileReader(),
+			data;
+
+			reader.readAsText(file);
+
+			reader.onload = (e) => {
+
+				try {
+			        data = JSON.parse(reader.result);
+			    } catch(e) {
+			        console.warn("File Load Error - File contents is invalid JSON", e);
+			        reject(e);
+			        return;
+			    }
+
+				this._setData(data)
+				.then((data) => {
+					resolve(data);
+				})
+				.catch((err) => {
+					resolve(err);
+				});
+			};
+
+			reader.onerror = (e) => {
+				console.warn("File Load Error - Unable to read file");
+				reject();
+			};
+		});
+
+		input.click();
+	});
+};
 
 
 //load data
@@ -971,6 +1054,16 @@ Tabulator.prototype.scrollToRow = function(index, position, ifVisible){
 			reject("Scroll Error - No matching row found");
 		}
 	});
+};
+
+Tabulator.prototype.moveRow = function(from, to, after){
+	var fromRow = this.rowManager.findRow(from);
+
+	if(fromRow){
+		fromRow.moveToRow(to, after);
+	}else{
+		console.warn("Move Error - No matching row found:", from);
+	}
 };
 
 Tabulator.prototype.getRows = function(active){
@@ -1365,6 +1458,29 @@ Tabulator.prototype.setPage = function(page){
 	}
 };
 
+Tabulator.prototype.setPageToRow = function(row){
+	return new Promise((resolve, reject) => {
+		if(this.options.pagination && this.modExists("page")){
+			row = this.rowManager.findRow(row);
+
+			if(row){
+				this.modules.page.setPageToRow(row)
+				.then(()=>{
+					resolve();
+				})
+				.catch(()=>{
+					reject();
+				});
+			}else{
+				reject();
+			}
+		}else{
+			reject();
+		}
+	});
+};
+
+
 Tabulator.prototype.setPageSize = function(size){
 	if(this.options.pagination && this.modExists("page")){
 		this.modules.page.setPageSize(size);
@@ -1464,7 +1580,7 @@ Tabulator.prototype.getGroups = function(values){
 Tabulator.prototype.getGroupedData = function(){
 	if (this.modExists("groupRows", true)){
 		return this.options.groupBy ?
-				this.modules.groupRows.getGroupedData() : this.getData()
+		this.modules.groupRows.getGroupedData() : this.getData()
 	}
 }
 
@@ -1486,7 +1602,6 @@ Tabulator.prototype.navigatePrev = function(){
 		cell = this.modules.edit.currentCell;
 
 		if(cell){
-			e.preventDefault();
 			return cell.nav().prev();
 		}
 	}
@@ -1501,7 +1616,6 @@ Tabulator.prototype.navigateNext = function(){
 		cell = this.modules.edit.currentCell;
 
 		if(cell){
-			e.preventDefault();
 			return cell.nav().next();
 		}
 	}
@@ -1610,6 +1724,13 @@ Tabulator.prototype.download = function(type, filename, options){
 		this.modules.download.download(type, filename, options);
 	}
 };
+
+Tabulator.prototype.downloadToTab = function(type, filename, options){
+	if(this.modExists("download", true)){
+		this.modules.download.download(type, filename, options, true);
+	}
+};
+
 
 /////////// Inter Table Communications ///////////
 

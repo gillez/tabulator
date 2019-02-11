@@ -5,6 +5,7 @@ var DataTree = function(table){
 	this.collapseEl = null;
 	this.expandEl = null;
 	this.branchEl = null;
+	this.elementField = false;
 
 	this.startOpen = function(){};
 
@@ -17,6 +18,7 @@ DataTree.prototype.initialize = function(){
 
 	this.field = options.dataTreeChildField;
 	this.indent = options.dataTreeChildIndent;
+	this.elementField = options.dataTreeElementColumn;
 
 	if(options.dataTreeBranchElement){
 
@@ -80,10 +82,6 @@ DataTree.prototype.initialize = function(){
 		};
 		break;
 	}
-
-
-
-
 };
 
 DataTree.prototype.initializeRow = function(row){
@@ -102,7 +100,7 @@ DataTree.prototype.initializeRow = function(row){
 
 
 DataTree.prototype.layoutRow = function(row){
-	var cell = row.getCells()[0],
+	var cell = this.elementField ? row.getCell(this.elementField) : row.getCells()[0],
 	el = cell.getElement(),
 	config = row.modules.dataTree;
 
@@ -172,7 +170,7 @@ DataTree.prototype.getRows = function(rows){
 
 		if(row instanceof Row){
 
-			config = row.modules.dataTree.children
+			config = row.modules.dataTree.children;
 
 			if(!config.index && config.children !== false){
 				children = this.getChildren(row);
@@ -190,6 +188,7 @@ DataTree.prototype.getRows = function(rows){
 
 DataTree.prototype.getChildren = function(row){
 	var config = row.modules.dataTree,
+	children = [],
 	output = [];
 
 	if(config.children !== false && config.open){
@@ -197,7 +196,17 @@ DataTree.prototype.getChildren = function(row){
 			config.children = this.generateChildren(row);
 		}
 
-		config.children.forEach((child) => {
+		if(this.table.modExists("filter")){
+			children = this.table.modules.filter.filter(config.children);
+		}else{
+			children = config.children;
+		}
+
+		if(this.table.modExists("sort")){
+			this.table.modules.sort.sort(children);
+		}
+
+		children.forEach((child) => {
 			output.push(child);
 
 			var subChildren = this.getChildren(child);
@@ -301,5 +310,8 @@ DataTree.prototype.checkForRestyle = function(cell){
 	}
 };
 
+DataTree.prototype.getChildField = function(){
+	return this.field;
+};
 
 Tabulator.prototype.registerModule("dataTree", DataTree);

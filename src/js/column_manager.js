@@ -29,6 +29,16 @@ ColumnManager.prototype.createHeaderElement = function (){
 	return el;
 };
 
+ColumnManager.prototype.initialize = function (){
+	var self = this;
+
+	//scroll body along with header
+	self.element.addEventListener("scroll", function(){
+		self.table.rowManager.scrollHorizontal(self.element.scrollLeft);
+	});
+};
+
+
 //link to row manager
 ColumnManager.prototype.setRowManager = function(manager){
 	this.rowManager = manager;
@@ -71,6 +81,62 @@ ColumnManager.prototype.scrollHorizontal = function(left){
 
 
 ///////////// Column Setup Functions /////////////
+
+ColumnManager.prototype.generateColumnsFromRowData = function(data){
+	var cols = [],
+	row, sorter;
+
+	if(data && data.length){
+
+		row = data[0];
+
+		for(var key in row){
+			let col = {
+				field:key,
+				title:key,
+			};
+
+			let value = row[key];
+
+			switch(typeof value){
+				case "undefined":
+				sorter = "string";
+				break;
+
+				case "boolean":
+				sorter = "boolean";
+				break;
+
+				case "object":
+				if(Array.isArray(value)){
+					sorter = "array";
+				}else{
+					sorter = "string";
+				}
+				break;
+
+				default:
+				if(!isNaN(value) && value !== ""){
+					sorter = "number";
+				}else{
+					if(value.match(/((^[0-9]+[a-z]+)|(^[a-z]+[0-9]+))+$/i)){
+						sorter = "alphanum";
+					}else{
+						sorter = "string";
+					}
+				}
+				break;
+			}
+
+			col.sorter = sorter;
+
+			cols.push(col);
+		}
+
+		this.table.options.columns = cols;
+		this.setColumns(this.table.options.columns);
+	}
+};
 
 ColumnManager.prototype.setColumns = function(cols, row){
 	var self = this;

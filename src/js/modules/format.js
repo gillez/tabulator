@@ -162,7 +162,7 @@ Format.prototype.formatters = {
 
 	//clickable anchor tag
 	link:function(cell, formatterParams, onRendered){
-		var value = this.sanitizeHTML(cell.getValue()),
+		var value = cell.getValue(),
 		urlPrefix = formatterParams.urlPrefix || "",
 		label = this.emptyToSpace(value),
 		el = document.createElement("a"),
@@ -208,7 +208,7 @@ Format.prototype.formatters = {
 			el.setAttribute("target", formatterParams.target);
 		}
 
-		el.innerHTML = this.emptyToSpace(label);
+		el.innerHTML = this.emptyToSpace(this.sanitizeHTML(label));
 
 		return el;
 	},
@@ -370,6 +370,54 @@ Format.prototype.formatters = {
 		return stars;
 	},
 
+	traffic:function(cell, formatterParams, onRendered){
+		var value = this.sanitizeHTML(cell.getValue()) || 0,
+		el = document.createElement("span"),
+		max = formatterParams && formatterParams.max ? formatterParams.max : 100,
+		min = formatterParams && formatterParams.min ? formatterParams.min : 0,
+		colors = formatterParams && typeof formatterParams.color !== "undefined" ? formatterParams.color : ["red", "orange", "green"],
+		color = "#666666",
+		percent, percentValue;
+
+		if(isNaN(value) || typeof cell.getValue() === "undefined"){
+			return;
+		}
+
+		el.classList.add("tabulator-traffic-light");
+
+		//make sure value is in range
+		percentValue = parseFloat(value) <= max ? parseFloat(value) : max;
+		percentValue = parseFloat(percentValue) >= min ? parseFloat(percentValue) : min;
+
+		//workout percentage
+		percent = (max - min) / 100;
+		percentValue = Math.round((percentValue - min) / percent);
+
+		//set color
+		switch(typeof colors){
+			case "string":
+			color = colors;
+			break;
+			case "function":
+			color = colors(value);
+			break;
+			case "object":
+			if(Array.isArray(colors)){
+				var unit = 100 / colors.length;
+				var index = Math.floor(percentValue / unit);
+
+				index = Math.min(index, colors.length - 1);
+				index = Math.max(index, 0);
+				color = colors[index];
+				break;
+			}
+		}
+
+		el.style.backgroundColor = color;
+
+		return el;
+	},
+
 	//progress bar
 	progress:function(cell, formatterParams, onRendered){ //progress bar
 		var value = this.sanitizeHTML(cell.getValue()) || 0,
@@ -513,7 +561,8 @@ Format.prototype.formatters = {
 			open = true;
 		}
 
-		el.addEventListener("click", function(){
+		el.addEventListener("click", function(e){
+			e.stopImmediatePropagation();
 			toggleList(!open);
 		});
 

@@ -1,6 +1,6 @@
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-/* Tabulator v4.1.5 (c) Oliver Folkerd */
+/* Tabulator v4.2.0 (c) Oliver Folkerd */
 
 var HtmlTableImport = function HtmlTableImport(table) {
 	this.table = table; //hold Tabulator object
@@ -82,8 +82,14 @@ HtmlTableImport.prototype.parseTable = function () {
 };
 
 //extract tabulator attribute options
-HtmlTableImport.prototype._extractOptions = function (element, options) {
+HtmlTableImport.prototype._extractOptions = function (element, options, defaultOptions) {
 	var attributes = element.attributes;
+	var optionsArr = defaultOptions ? Object.assign([], defaultOptions) : Object.keys(options);
+	var optionsList = {};
+
+	optionsArr.forEach(function (item) {
+		optionsList[item.toLowerCase()] = item;
+	});
 
 	for (var index in attributes) {
 		var attrib = attributes[index];
@@ -92,10 +98,8 @@ HtmlTableImport.prototype._extractOptions = function (element, options) {
 		if (attrib && (typeof attrib === "undefined" ? "undefined" : _typeof(attrib)) == "object" && attrib.name && attrib.name.indexOf("tabulator-") === 0) {
 			name = attrib.name.replace("tabulator-", "");
 
-			for (var key in options) {
-				if (key.toLowerCase() == name) {
-					options[key] = this._attribValue(attrib.value);
-				}
+			if (typeof optionsList[name] !== "undefined") {
+				options[optionsList[name]] = this._attribValue(attrib.value);
 			}
 		}
 	}
@@ -152,7 +156,7 @@ HtmlTableImport.prototype._extractHeaders = function (headers, rows) {
 		attributes = header.attributes;
 
 		// //check for tablator inline options
-		this._extractOptions(header, col);
+		this._extractOptions(header, col, Column.prototype.defaultOptionList);
 
 		for (var i in attributes) {
 			var attrib = attributes[i],

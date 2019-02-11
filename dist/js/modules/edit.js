@@ -1,6 +1,6 @@
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-/* Tabulator v4.1.5 (c) Oliver Folkerd */
+/* Tabulator v4.2.0 (c) Oliver Folkerd */
 
 var Edit = function Edit(table) {
 	this.table = table; //hold Tabulator object
@@ -133,7 +133,9 @@ Edit.prototype.bindEditor = function (cell) {
 
 Edit.prototype.focusCellNoEvent = function (cell) {
 	this.recursionBlock = true;
-	cell.getElement().focus();
+	if (this.table.browser !== "ie") {
+		cell.getElement().focus();
+	}
 	this.recursionBlock = false;
 };
 
@@ -571,7 +573,17 @@ Edit.prototype.editors = {
 				}
 			});
 
-			return Object.keys(output);
+			if (editorParams.sortValuesList) {
+				if (editorParams.sortValuesList == "asc") {
+					output = Object.keys(output).sort();
+				} else {
+					output = Object.keys(output).sort().reverse();
+				}
+			} else {
+				output = Object.keys(output);
+			}
+
+			return output;
 		}
 
 		function parseItems(inputValues, curentValue) {
@@ -585,7 +597,7 @@ Edit.prototype.editors = {
 					element: false
 				};
 
-				if (item.value === curentValue) {
+				if (item.value === curentValue || !isNaN(parseFloat(item.value)) && !isNaN(parseFloat(item.value)) && parseFloat(item.value) === parseFloat(curentValue)) {
 					setCurrentItem(item);
 				}
 
@@ -621,13 +633,14 @@ Edit.prototype.editors = {
 							processComplexListItem(value);
 						}
 					} else {
+
 						item = {
 							label: editorParams.listItemFormatter ? editorParams.listItemFormatter(value, value) : value,
 							value: value,
 							element: false
 						};
 
-						if (item.value === curentValue) {
+						if (item.value === curentValue || !isNaN(parseFloat(item.value)) && !isNaN(parseFloat(item.value)) && parseFloat(item.value) === parseFloat(curentValue)) {
 							setCurrentItem(item);
 						}
 
@@ -643,7 +656,7 @@ Edit.prototype.editors = {
 						element: false
 					};
 
-					if (item.value === curentValue) {
+					if (item.value === curentValue || !isNaN(parseFloat(item.value)) && !isNaN(parseFloat(item.value)) && parseFloat(item.value) === parseFloat(curentValue)) {
 						setCurrentItem(item);
 					}
 
@@ -763,7 +776,15 @@ Edit.prototype.editors = {
 		input.style.padding = "4px";
 		input.style.width = "100%";
 		input.style.boxSizing = "border-box";
-		input.readonly = true;
+		input.readOnly = true;
+
+		input.value = initialValue;
+
+		if (editorParams.values === true) {
+			parseItems(getUniqueColumnValues(), initialValue);
+		} else {
+			parseItems(editorParams.values || [], initialValue);
+		}
 
 		//allow key based navigation
 		input.addEventListener("keydown", function (e) {
@@ -858,7 +879,17 @@ Edit.prototype.editors = {
 				}
 			});
 
-			return Object.keys(output);
+			if (editorParams.sortValuesList) {
+				if (editorParams.sortValuesList == "asc") {
+					output = Object.keys(output).sort();
+				} else {
+					output = Object.keys(output).sort().reverse();
+				}
+			} else {
+				output = Object.keys(output);
+			}
+
+			return output;
 		}
 
 		function parseItems(inputValues, curentValue) {
@@ -872,7 +903,7 @@ Edit.prototype.editors = {
 						element: false
 					};
 
-					if (item.value === curentValue) {
+					if (item.value === curentValue || !isNaN(parseFloat(item.value)) && !isNaN(parseFloat(item.value)) && parseFloat(item.value) === parseFloat(curentValue)) {
 						setCurrentItem(item);
 					}
 
@@ -886,7 +917,7 @@ Edit.prototype.editors = {
 						element: false
 					};
 
-					if (item.value === curentValue) {
+					if (item.value === curentValue || !isNaN(parseFloat(item.value)) && !isNaN(parseFloat(item.value)) && parseFloat(item.value) === parseFloat(curentValue)) {
 						setCurrentItem(item);
 					}
 
@@ -1048,7 +1079,7 @@ Edit.prototype.editors = {
 		}
 
 		//style input
-		input.setAttribute("type", "text");
+		input.setAttribute("type", "search");
 
 		input.style.padding = "4px";
 		input.style.width = "100%";
@@ -1098,6 +1129,13 @@ Edit.prototype.editors = {
 					//escape
 					cancelItem();
 					break;
+
+				case 36: //home
+				case 35:
+					//end
+					//prevent table navigation while using input element
+					e.stopImmediatePropagation();
+					break;
 			}
 		});
 
@@ -1116,6 +1154,10 @@ Edit.prototype.editors = {
 				default:
 					filterList(input.value);
 			}
+		});
+
+		input.addEventListener("search", function (e) {
+			filterList(input.value);
 		});
 
 		input.addEventListener("blur", function (e) {
@@ -1178,21 +1220,31 @@ Edit.prototype.editors = {
 
 		//build stars
 		function buildStar(i) {
+
+			var starHolder = document.createElement("span");
 			var nextStar = star.cloneNode(true);
 
 			stars.push(nextStar);
 
-			nextStar.addEventListener("mouseover", function (e) {
+			starHolder.addEventListener("mouseenter", function (e) {
 				e.stopPropagation();
+				e.stopImmediatePropagation();
 				starChange(i);
 			});
 
-			nextStar.addEventListener("click", function (e) {
+			starHolder.addEventListener("mousemove", function (e) {
 				e.stopPropagation();
+				e.stopImmediatePropagation();
+			});
+
+			starHolder.addEventListener("click", function (e) {
+				e.stopPropagation();
+				e.stopImmediatePropagation();
 				success(i);
 			});
 
-			starsHolder.appendChild(nextStar);
+			starHolder.appendChild(nextStar);
+			starsHolder.appendChild(starHolder);
 		}
 
 		//handle keyboard navigation value change
@@ -1229,7 +1281,7 @@ Edit.prototype.editors = {
 		// set initial styling of stars
 		starChange(value);
 
-		starsHolder.addEventListener("mouseover", function (e) {
+		starsHolder.addEventListener("mousemove", function (e) {
 			starChange(0);
 		});
 

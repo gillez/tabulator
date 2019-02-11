@@ -30,6 +30,7 @@ Sort.prototype.initializeColumn = function(column, content){
 		sorter:sorter, dir:"none",
 		params:column.definition.sorterParams || {},
 		startingDir:column.definition.headerSortStartingDir || "asc",
+		tristate:column.definition.headerSortTristate,
 	};
 
 	if(column.definition.headerSort !== false){
@@ -51,34 +52,67 @@ Sort.prototype.initializeColumn = function(column, content){
 			match = false;
 
 			if(column.modules.sort){
-				dir = column.modules.sort.dir == "asc" ? "desc" : (column.modules.sort.dir == "desc" ? "asc" : column.modules.sort.startingDir);
+				if(column.modules.sort.tristate){
+					if(column.modules.sort.dir == "none"){
+						dir = column.modules.sort.startingDir;
+					}else{
+						if(column.modules.sort.dir == column.modules.sort.startingDir){
+							dir = column.modules.sort.dir == "asc" ? "desc" : "asc";
+						}else{
+							dir = "none";
+						}
+					}
+				}else{
+					switch(column.modules.sort.dir){
+						case "asc":
+						dir = "desc";
+						break;
+
+						case "desc":
+						dir = "asc";
+						break;
+
+						default:
+						dir = column.modules.sort.startingDir;
+					}
+				}
+
 
 				if (self.table.options.columnHeaderSortMulti && (e.shiftKey || e.ctrlKey)) {
 					sorters = self.getSort();
-
 
 					match = sorters.findIndex(function(sorter){
 						return sorter.field === column.getField();
 					});
 
 					if(match > -1){
-						sorters[match].dir = sorters[match].dir == "asc" ? "desc" : "asc";
+						sorters[match].dir = dir;
 
 						if(match != sorters.length -1){
-							sorters.push(sorters.splice(match, 1)[0]);
+							match = sorters.splice(match, 1)[0];
+							if(dir != "none"){
+								sorters.push(match);
+							}
 						}
 					}else{
-						sorters.push({column:column, dir:dir});
+						if(dir != "none"){
+							sorters.push({column:column, dir:dir});
+						}
 					}
 
 					//add to existing sort
 					self.setSort(sorters);
 				}else{
-					//sort by column only
-					self.setSort(column, dir);
+					if(dir == "none"){
+						self.clear();
+					}else{
+						//sort by column only
+						self.setSort(column, dir);
+					}
+
 				}
 
-				self.table.rowManager.sorterRefresh();
+				self.table.rowManager.sorterRefresh(!self.sortList.length);
 			}
 		});
 	}
@@ -181,7 +215,7 @@ Sort.prototype.findSorter = function(column){
 };
 
 //work through sort list sorting data
-Sort.prototype.sort = function(){
+Sort.prototype.sort = function(data){
 	var self = this, lastSort, sortList;
 
 	sortList = this.table.options.sortOrderReverse ? self.sortList.slice().reverse() : self.sortList;
@@ -203,7 +237,7 @@ Sort.prototype.sort = function(){
 					item.column.modules.sort.sorter = self.findSorter(item.column);
 				}
 
-				self._sortItem(item.column, item.dir, sortList, i);
+				self._sortItem(data, item.column, item.dir, sortList, i);
 			}
 
 			self.setColumnHeader(item.column, item.dir);
@@ -237,14 +271,12 @@ Sort.prototype.setColumnHeader = function(column, dir){
 };
 
 //sort each item in sort list
-Sort.prototype._sortItem = function(column, dir, sortList, i){
+Sort.prototype._sortItem = function(data, column, dir, sortList, i){
 	var self = this;
-
-	var activeRows = self.table.rowManager.activeRows;
 
 	var params = typeof column.modules.sort.params === "function" ? column.modules.sort.params(column.getComponent(), dir) : column.modules.sort.params;
 
-	activeRows.sort(function(a, b){
+	data.sort(function(a, b){
 
 		var result = self._sortRow(a, b, column, dir, params);
 
@@ -290,10 +322,12 @@ Sort.prototype.sorters = {
 	//sort numbers
 	number:function(a, b, aRow, bRow, column, dir, params){
 		var alignEmptyValues = params.alignEmptyValues;
+		var decimal = params.decimalSeparator || ".";
+		var thousand = params.thousandSeparator || ",";
 		var emptyAlign = 0;
 
-		a = parseFloat(String(a).replace(",",""));
-		b = parseFloat(String(b).replace(",",""));
+		a = parseFloat(String(a).split(thousand).join("").split(decimal).join("."));
+		b = parseFloat(String(b).split(thousand).join("").split(decimal).join("."));
 
 		//handle non numeric values
 		if(isNaN(a)){
