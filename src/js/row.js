@@ -53,8 +53,8 @@ RowComponent.prototype.move = function(to, after){
 	this._row.moveToRow(to, after);
 };
 
-RowComponent.prototype.update = function(data){
-	return this._row.updateData(data);
+RowComponent.prototype.update = function(data, mutate){
+	return this._row.updateData(data, mutate);
 };
 
 RowComponent.prototype.normalizeHeight = function(){
@@ -497,9 +497,12 @@ Row.prototype.setData = function(data){
 };
 
 //update the rows data
-Row.prototype.updateData = function(data){
+Row.prototype.updateData = function(data, mutate){
 	var self = this,
 	visible = Tabulator.prototype.helpers.elVisible(this.element);
+	if(typeof mutate == "undefined"){
+		mutate = true;
+	}
 
 	return new Promise((resolve, reject) => {
 
@@ -512,7 +515,7 @@ Row.prototype.updateData = function(data){
 		}
 
 		//mutate incomming data if needed
-		if(self.table.modExists("mutator")){
+		if(mutate && self.table.modExists("mutator")){
 			data = self.table.modules.mutator.transformRow(data, "data", true);
 		}
 
@@ -530,7 +533,7 @@ Row.prototype.updateData = function(data){
 			let cell = this.getCell(attrname);
 
 			if(cell){
-				if(cell.getValue() != data[attrname]){
+				if(!mutate || cell.getValue() != data[attrname]){
 					cell.setValueProcessData(data[attrname]);
 
 					if(visible){
