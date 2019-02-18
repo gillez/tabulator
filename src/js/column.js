@@ -146,6 +146,9 @@ ColumnComponent.prototype.getPrevColumn = function(){
 	return this._column.prevColumn().getComponent();
 };
 
+ColumnComponent.prototype.getWidth = function(){
+	return this._column.width;
+}
 
 
 var Column = function(def, parent){
