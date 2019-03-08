@@ -1,11 +1,12 @@
 var ColumnManager = function(table){
 	this.table = table; //hold parent table
+	this.blockHozScrollEvent = false;
 	this.headersElement = this.createHeadersElement();
 	this.element = this.createHeaderElement(); //containing element
 	this.rowManager = null; //hold row manager object
 	this.columns = []; // column definition object
 	this.columnsByIndex = []; //columns by index
-	this.columnsByField = []; //columns by field
+	this.columnsByField = {}; //columns by field
 	this.scrollLeft = 0;
 
 	this.element.insertBefore(this.headersElement, this.element.firstChild);
@@ -33,8 +34,10 @@ ColumnManager.prototype.initialize = function (){
 	var self = this;
 
 	//scroll body along with header
-	self.element.addEventListener("scroll", function(){
-		self.table.rowManager.scrollHorizontal(self.element.scrollLeft);
+	self.element.addEventListener("scroll", function(e){
+		if(!self.blockHozScrollEvent){
+			self.table.rowManager.scrollHorizontal(self.element.scrollLeft);
+		}
 	});
 };
 
@@ -59,6 +62,8 @@ ColumnManager.prototype.scrollHorizontal = function(left){
 	var hozAdjust = 0,
 	scrollWidth = this.element.scrollWidth - this.table.element.clientWidth;
 
+	clearTimeout(this.blockHozScrollEvent);
+	this.blockHozScrollEvent = setTimeout(() => {this.blockHozScrollEvent = false;}, 10);
 	this.element.scrollLeft = left;
 
 	//adjust for vertical scrollbar moving table when present
@@ -145,7 +150,7 @@ ColumnManager.prototype.setColumns = function(cols, row){
 
 	self.columns = [];
 	self.columnsByIndex = [];
-	self.columnsByField = [];
+	self.columnsByField = {};
 
 
 	//reset frozen columns
@@ -276,6 +281,14 @@ ColumnManager.prototype.getColumnByField = function(field){
 
 ColumnManager.prototype.getColumnByIndex = function(index){
 	return this.columnsByIndex[index];
+};
+
+ColumnManager.prototype.getFirstVisibileColumn = function(index){
+	var index = this.columnsByIndex.findIndex(function(col){
+		return col.visible;
+	});
+
+	return index > -1 ? this.columnsByIndex[index] : false;
 };
 
 ColumnManager.prototype.getColumns = function(){

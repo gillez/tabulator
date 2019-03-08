@@ -19,7 +19,7 @@ gutil = require('gulp-util'),
 insert = require('gulp-insert'),
 fs = require('fs');
 
-var version_no = "4.2.0",
+var version_no = "4.2.2",
 
 version = "/* Tabulator v" + version_no + " (c) Oliver Folkerd, with fork modifications by Giles Ellis, YoYotta */\n";
 
@@ -63,6 +63,7 @@ gulp.task('tabulator', function() {
     // .pipe(jshint.reporter('default'))
     .pipe(babel({
         //presets:['es2015']
+        compact: false,
         presets: [["env",{
             "targets": {
               "browsers": ["last 4 versions"]

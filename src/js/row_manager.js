@@ -1133,6 +1133,10 @@ RowManager.prototype.reRenderInPosition = function(callback){
 		this.scrollHorizontal(left);
 	}else{
 		this.renderTable();
+
+		if(callback){
+			callback();
+		}
 	}
 };
 

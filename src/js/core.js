@@ -433,10 +433,6 @@ Tabulator.prototype._buildElement = function(){
 		this.footerManager.activate();
 	}
 
-	if(options.dataTree && this.modExists("dataTree", true)){
-		mod.dataTree.initialize();
-	}
-
 	if( (options.persistentLayout || options.persistentSort || options.persistentFilter) && this.modExists("persistence", true)){
 		mod.persistence.initialize(options.persistenceMode, options.persistenceID);
 	}
@@ -449,11 +445,19 @@ Tabulator.prototype._buildElement = function(){
 		mod.moveRow.initialize();
 	}
 
+	if(options.autoColumns && this.options.data){
+		this.columnManager.generateColumnsFromRowData(this.options.data);
+	}
+
 	if(this.modExists("columnCalcs")){
 		mod.columnCalcs.initialize();
 	}
 
 	this.columnManager.setColumns(options.columns);
+
+	if(options.dataTree && this.modExists("dataTree", true)){
+		mod.dataTree.initialize();
+	}
 
 	if(this.modExists("frozenRows")){
 		this.modules.frozenRows.initialize();
@@ -584,8 +588,8 @@ Tabulator.prototype.destroy = function(){
 
 	Tabulator.prototype.comms.deregister(this); //deregister table from inderdevice communication
 
-	if(self.table.options.reactiveData && this.table.modExists("reactiveData", true)){
-		this.table.modules.reactiveData.unwatchData();
+	if(this.options.reactiveData && this.modExists("reactiveData", true)){
+		this.modules.reactiveData.unwatchData();
 	}
 
 	//clear row data
