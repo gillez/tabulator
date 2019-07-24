@@ -1,6 +1,6 @@
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-/* Tabulator v4.2.2 (c) Oliver Folkerd */
+/* Tabulator v4.3.0 (c) Oliver Folkerd */
 
 var Edit = function Edit(table) {
 	this.table = table; //hold Tabulator object
@@ -302,7 +302,7 @@ Edit.prototype.editors = {
 		var cellValue = cell.getValue(),
 		    input = document.createElement("input");
 
-		input.setAttribute("type", "text");
+		input.setAttribute("type", editorParams.search ? "search" : "text");
 
 		input.style.padding = "4px";
 		input.style.width = "100%";
@@ -347,7 +347,7 @@ Edit.prototype.editors = {
 	textarea: function textarea(cell, onRendered, success, cancel, editorParams) {
 		var self = this,
 		    cellValue = cell.getValue(),
-		    value = String(cellValue !== null && cellValue !== "undefined" ? cellValue : ""),
+		    value = String(cellValue !== null && typeof cellValue !== "undefined" ? cellValue : ""),
 		    count = (value.match(/(?:\r\n|\r|\n)/g) || []).length + 1,
 		    input = document.createElement("textarea"),
 		    scrollHeight = 0;
@@ -434,14 +434,19 @@ Edit.prototype.editors = {
 
 		input.value = cellValue;
 
+		var blurFunc = function blurFunc(e) {
+			onChange();
+		};
+
 		onRendered(function () {
+			//submit new value on blur
+			input.removeEventListener("blur", blurFunc);
+
 			input.focus();
 			input.style.height = "100%";
 
 			//submit new value on blur
-			input.addEventListener("blur", function (e) {
-				onChange();
-			});
+			input.addEventListener("blur", blurFunc);
 		});
 
 		function onChange() {
@@ -554,6 +559,8 @@ Edit.prototype.editors = {
 		    displayItems = [],
 		    currentItem = {},
 		    blurable = true;
+
+		this.table.rowManager.element.addEventListener("scroll", cancelItem);
 
 		if (Array.isArray(editorParams) || !Array.isArray(editorParams) && (typeof editorParams === "undefined" ? "undefined" : _typeof(editorParams)) === "object" && !editorParams.values) {
 			console.warn("DEPRECATION WANRING - values for the select editor must now be passed into the values property of the editorParams object, not as the editorParams object");
@@ -768,6 +775,12 @@ Edit.prototype.editors = {
 			if (listEl.parentNode) {
 				listEl.parentNode.removeChild(listEl);
 			}
+
+			removeScrollListener();
+		}
+
+		function removeScrollListener() {
+			self.table.rowManager.element.removeEventListener("scroll", cancelItem);
 		}
 
 		//style input
@@ -776,9 +789,10 @@ Edit.prototype.editors = {
 		input.style.padding = "4px";
 		input.style.width = "100%";
 		input.style.boxSizing = "border-box";
-		input.readOnly = true;
+		input.style.cursor = "default";
+		input.readOnly = this.currentCell != false;
 
-		input.value = initialValue;
+		input.value = typeof initialValue !== "undefined" || initialValue === null ? initialValue : "";
 
 		if (editorParams.values === true) {
 			parseItems(getUniqueColumnValues(), initialValue);
@@ -795,6 +809,7 @@ Edit.prototype.editors = {
 					//up arrow
 					e.stopImmediatePropagation();
 					e.stopPropagation();
+					e.preventDefault();
 
 					index = dataItems.indexOf(currentItem);
 
@@ -807,6 +822,7 @@ Edit.prototype.editors = {
 					//down arrow
 					e.stopImmediatePropagation();
 					e.stopPropagation();
+					e.preventDefault();
 
 					index = dataItems.indexOf(currentItem);
 
@@ -817,6 +833,14 @@ Edit.prototype.editors = {
 							setCurrentItem(dataItems[index + 1]);
 						}
 					}
+					break;
+
+				case 37: //left arrow
+				case 39:
+					//right arrow
+					e.stopImmediatePropagation();
+					e.stopPropagation();
+					e.preventDefault();
 					break;
 
 				case 13:
@@ -865,6 +889,8 @@ Edit.prototype.editors = {
 		    values = [],
 		    currentItem = {},
 		    blurable = true;
+
+		this.table.rowManager.element.addEventListener("scroll", cancelItem);
 
 		function getUniqueColumnValues() {
 			var output = {},
@@ -925,14 +951,40 @@ Edit.prototype.editors = {
 				}
 			}
 
+			if (editorParams.searchFunc) {
+				itemList.forEach(function (item) {
+					item.search = {
+						title: item.title,
+						value: item.value
+					};
+				});
+			}
+
 			allItems = itemList;
 		}
 
 		function filterList(term, intialLoad) {
-			var matches = [];
+			var matches = [],
+			    searchObjs = [],
+			    searchResults = [];
 
 			if (editorParams.searchFunc) {
-				matches = editorParams.searchFunc(term, values);
+
+				allItems.forEach(function (item) {
+					searchObjs.push(item.search);
+				});
+
+				searchResults = editorParams.searchFunc(term, searchObjs);
+
+				searchResults.forEach(function (result) {
+					var match = allItems.find(function (item) {
+						return item.search === result;
+					});
+
+					if (match) {
+						matches.push(match);
+					}
+				});
 			} else {
 				if (term === "") {
 
@@ -1025,8 +1077,8 @@ Edit.prototype.editors = {
 			if (currentItem) {
 				if (initialValue !== currentItem.value) {
 					initialValue = currentItem.value;
-					input.value = currentItem.value;
-					success(input.value);
+					input.value = currentItem.title;
+					success(currentItem.value);
 				} else {
 					cancel();
 				}
@@ -1076,6 +1128,12 @@ Edit.prototype.editors = {
 			if (listEl.parentNode) {
 				listEl.parentNode.removeChild(listEl);
 			}
+
+			removeScrollListener();
+		}
+
+		function removeScrollListener() {
+			self.table.rowManager.element.removeEventListener("scroll", cancelItem);
 		}
 
 		//style input
@@ -1094,6 +1152,7 @@ Edit.prototype.editors = {
 					//up arrow
 					e.stopImmediatePropagation();
 					e.stopPropagation();
+					e.preventDefault();
 
 					index = displayItems.indexOf(currentItem);
 
@@ -1108,6 +1167,7 @@ Edit.prototype.editors = {
 					//down arrow
 					e.stopImmediatePropagation();
 					e.stopPropagation();
+					e.preventDefault();
 
 					index = displayItems.indexOf(currentItem);
 
@@ -1118,6 +1178,14 @@ Edit.prototype.editors = {
 							setCurrentItem(displayItems[index + 1]);
 						}
 					}
+					break;
+
+				case 37: //left arrow
+				case 39:
+					//right arrow
+					e.stopImmediatePropagation();
+					e.stopPropagation();
+					e.preventDefault();
 					break;
 
 				case 13:
@@ -1167,9 +1235,10 @@ Edit.prototype.editors = {
 		});
 
 		input.addEventListener("focus", function (e) {
+			var value = typeof initialValue !== "undefined" || initialValue === null ? initialValue : "";
 			showList();
-			input.value = initialValue;
-			filterList(initialValue, true);
+			input.value = value;
+			filterList(value, true);
 		});
 
 		//style list element

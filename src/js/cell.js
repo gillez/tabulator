@@ -187,6 +187,21 @@ Cell.prototype._bindClickEvents = function(cellEvents){
 				self.table.options.cellDblClick.call(self.table, e, component);
 			}
 		});
+	}else{
+		element.addEventListener("dblclick", function(e){
+			e.preventDefault();
+
+			if (document.selection) { // IE
+				var range = document.body.createTextRange();
+				range.moveToElementText(self.element);
+				range.select();
+			} else if (window.getSelection) {
+				var range = document.createRange();
+				range.selectNode(self.element);
+				window.getSelection().removeAllRanges();
+				window.getSelection().addRange(range);
+			}
+		});
 	}
 
 	if (cellEvents.cellContext || this.table.options.cellContext){
@@ -293,7 +308,7 @@ Cell.prototype._bindTouchEvents = function(cellEvents){
 
 		element.addEventListener("touchstart", function(e){
 			tap = true;
-		});
+		}, {passive: true});
 
 		element.addEventListener("touchend", function(e){
 			if(tap){
@@ -362,7 +377,7 @@ Cell.prototype._bindTouchEvents = function(cellEvents){
 				}
 			}, 1000);
 
-		});
+		}, {passive: true});
 
 		element.addEventListener("touchend", function(e){
 			clearTimeout(tapHold);
@@ -496,7 +511,15 @@ Cell.prototype.setValueProcessData = function(value, mutate){
 	if(changed && this.table.modExists("columnCalcs")){
 		if(this.column.definition.topCalc || this.column.definition.bottomCalc){
 			if(this.table.options.groupBy && this.table.modExists("groupRows")){
-				this.table.modules.columnCalcs.recalcRowGroup(this.row);
+
+				if(this.table.options.columnCalcs == "table" || this.table.options.columnCalcs == "both"){
+					this.table.modules.columnCalcs.recalc(this.table.rowManager.activeRows);
+				}
+
+				if(this.table.options.columnCalcs != "table"){
+					this.table.modules.columnCalcs.recalcRowGroup(this.row);
+				}
+
 			}else{
 				this.table.modules.columnCalcs.recalc(this.table.rowManager.activeRows);
 			}
@@ -602,11 +625,12 @@ Cell.prototype.cancelEdit = function(){
 
 
 
-
 Cell.prototype.delete = function(){
 	this.element.parentNode.removeChild(this.element);
+	this.element = false;
 	this.column.deleteCell(this);
 	this.row.deleteCell(this);
+	this.calcs = {};
 };
 
 //////////////// Navigation /////////////////

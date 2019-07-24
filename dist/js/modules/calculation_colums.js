@@ -1,6 +1,6 @@
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-/* Tabulator v4.2.2 (c) Oliver Folkerd */
+/* Tabulator v4.3.0 (c) Oliver Folkerd */
 
 var ColumnCalcs = function ColumnCalcs(table) {
 	this.table = table; //hold Tabulator object
@@ -144,6 +144,10 @@ ColumnCalcs.prototype.recalc = function (rows) {
 		data = this.rowsToData(rows);
 
 		if (this.topInitialized) {
+			if (this.topRow) {
+				this.topRow.deleteCells();
+			}
+
 			row = this.generateRow("top", this.rowsToData(rows));
 			this.topRow = row;
 			while (this.topElement.firstChild) {
@@ -153,6 +157,10 @@ ColumnCalcs.prototype.recalc = function (rows) {
 		}
 
 		if (this.botInitialized) {
+			if (this.botRow) {
+				this.botRow.deleteCells();
+			}
+
 			row = this.generateRow("bottom", this.rowsToData(rows));
 			this.botRow = row;
 			while (this.botElement.firstChild) {
@@ -242,34 +250,36 @@ ColumnCalcs.prototype.generateRow = function (pos, data) {
 
 		self.table.columnManager.columnsByIndex.forEach(function (column) {
 
-			if (column.visible) {
-				//set field name of mock column
-				self.genColumn.setField(column.getField());
-				self.genColumn.hozAlign = column.hozAlign;
+			//set field name of mock column
+			self.genColumn.setField(column.getField());
+			self.genColumn.hozAlign = column.hozAlign;
 
-				if (column.definition[pos + "CalcFormatter"] && self.table.modExists("format")) {
+			if (column.definition[pos + "CalcFormatter"] && self.table.modExists("format")) {
 
-					self.genColumn.modules.format = {
-						formatter: self.table.modules.format.getFormatter(column.definition[pos + "CalcFormatter"]),
-						params: column.definition[pos + "CalcFormatterParams"]
-					};
-				} else {
-					self.genColumn.modules.format = {
-						formatter: self.table.modules.format.getFormatter("plaintext"),
-						params: {}
-					};
-				}
+				self.genColumn.modules.format = {
+					formatter: self.table.modules.format.getFormatter(column.definition[pos + "CalcFormatter"]),
+					params: column.definition[pos + "CalcFormatterParams"]
+				};
+			} else {
+				self.genColumn.modules.format = {
+					formatter: self.table.modules.format.getFormatter("plaintext"),
+					params: {}
+				};
+			}
 
-				//ensure css class defintion is replicated to calculation cell
-				self.genColumn.definition.cssClass = column.definition.cssClass;
+			//ensure css class defintion is replicated to calculation cell
+			self.genColumn.definition.cssClass = column.definition.cssClass;
 
-				//generate cell and assign to correct column
-				var cell = new Cell(self.genColumn, row);
-				cell.column = column;
-				cell.setWidth();
+			//generate cell and assign to correct column
+			var cell = new Cell(self.genColumn, row);
+			cell.column = column;
+			cell.setWidth();
 
-				column.cells.push(cell);
-				cells.push(cell);
+			column.cells.push(cell);
+			cells.push(cell);
+
+			if (!column.visible) {
+				cell.hide();
 			}
 		});
 
@@ -296,7 +306,7 @@ ColumnCalcs.prototype.generateRowData = function (pos, data) {
 			});
 
 			paramKey = type + "Params";
-			params = typeof column.modules.columnCalcs[paramKey] === "function" ? column.modules.columnCalcs[paramKey](value, data) : column.modules.columnCalcs[paramKey];
+			params = typeof column.modules.columnCalcs[paramKey] === "function" ? column.modules.columnCalcs[paramKey](values, data) : column.modules.columnCalcs[paramKey];
 
 			column.setFieldValue(rowData, column.modules.columnCalcs[type](values, data, params));
 		}

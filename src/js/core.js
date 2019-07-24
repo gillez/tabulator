@@ -99,6 +99,13 @@ Tabulator.prototype.defaultOptions = {
 	dataTreeRowExpanded:function(){}, //row has been expanded
 	dataTreeRowCollapsed:function(){}, //row has been collapsed
 
+	printAsHtml:false, //enable print as html
+	printFormatter:false, //printing page formatter
+	printHeader:false, //page header contents
+	printFooter:false, //page footer contents
+	printCopyStyle:true, //enable print as html styling
+	printVisibleRows:true, //restrict print to visible rows only
+	printConfig:{}, //print config options
 
 	addRowPos:"bottom", //position to insert blank rows, top|bottom
 
@@ -111,12 +118,15 @@ Tabulator.prototype.defaultOptions = {
 
 	headerFilterPlaceholder: false, //placeholder text to display in header filters
 
+	headerVisible:true, //hide header
+
 	history:false, //enable edit history
 
 	locale:false, //current system language
 	langs:{},
 
 	virtualDom:true, //enable DOM virtualization
+    virtualDomBuffer:0, // set virtual DOM buffer size
 
 	persistentLayout:false, //store column layout in memory
 	persistentSort:false, //store sorting in memory
@@ -158,6 +168,8 @@ Tabulator.prototype.defaultOptions = {
 	groupValues:false,
 
 	groupHeader:false, //header generation function
+
+	htmlOutputConfig:false, //html outypu config
 
 	movableColumns:false, //enable movable columns
 
@@ -292,6 +304,15 @@ Tabulator.prototype.defaultOptions = {
 };
 
 Tabulator.prototype.initializeOptions = function(options){
+
+	//warn user if option is not available
+	for (var key in options){
+		if(typeof this.defaultOptions[key] === "undefined"){
+			console.warn("Invalid table constructor option:", key)
+		}
+	}
+
+	//assign options to table
 	for (var key in this.defaultOptions){
 		if(key in options){
 			this.options[key] = options[key];
@@ -309,7 +330,7 @@ Tabulator.prototype.initializeOptions = function(options){
 
 Tabulator.prototype.initializeElement = function(element){
 
-	if(element instanceof HTMLElement){
+	if(typeof HTMLElement !== "undefined" && element instanceof HTMLElement){
 		this.element = element;
 		return true;
 	}else if(typeof element === "string"){
@@ -333,6 +354,24 @@ Tabulator.prototype.initializeElement = function(element){
 Tabulator.prototype._mapDepricatedFunctionality = function(){
 
 };
+
+Tabulator.prototype._clearSelection = function(){
+
+	this.element.classList.add("tabulator-block-select");
+
+	if (window.getSelection) {
+	  if (window.getSelection().empty) {  // Chrome
+	    window.getSelection().empty();
+	  } else if (window.getSelection().removeAllRanges) {  // Firefox
+	    window.getSelection().removeAllRanges();
+	  }
+	} else if (document.selection) {  // IE?
+	  document.selection.empty();
+	}
+
+	this.element.classList.remove("tabulator-block-select");
+};
+
 
 //concreate table
 Tabulator.prototype._create = function(){
@@ -543,6 +582,10 @@ Tabulator.prototype._buildElement = function(){
 		mod.clipboard.initialize();
 	}
 
+	if(options.printAsHtml && this.modExists("print")){
+		mod.print.initialize();
+	}
+
 	options.tableBuilt.call(this);
 };
 
@@ -653,12 +696,12 @@ Tabulator.prototype.setDataFromLocalFile = function(extensions){
 			reader.onload = (e) => {
 
 				try {
-			        data = JSON.parse(reader.result);
-			    } catch(e) {
-			        console.warn("File Load Error - File contents is invalid JSON", e);
-			        reject(e);
-			        return;
-			    }
+					data = JSON.parse(reader.result);
+				} catch(e) {
+					console.warn("File Load Error - File contents is invalid JSON", e);
+					reject(e);
+					return;
+				}
 
 				this._setData(data)
 				.then((data) => {
@@ -694,53 +737,53 @@ Tabulator.prototype._setData = function(data, params, config, inPosition){
 
 	if(typeof(data) === "string"){
 		if (data.indexOf("{") == 0 || data.indexOf("[") == 0){
-				//data is a json encoded string
-				return self.rowManager.setData(JSON.parse(data), inPosition);
-			}else{
-
-				if(self.modExists("ajax", true)){
-					if(params){
-						self.modules.ajax.setParams(params);
-					}
-
-					if(config){
-						self.modules.ajax.setConfig(config);
-					}
-
-					self.modules.ajax.setUrl(data);
-
-					if(self.options.pagination == "remote" && self.modExists("page", true)){
-						self.modules.page.reset(true);
-						return self.modules.page.setPage(1);
-					}else{
-						//assume data is url, make ajax call to url to get data
-						return self.modules.ajax.loadData(inPosition);
-					}
-				}
-			}
+			//data is a json encoded string
+			return self.rowManager.setData(JSON.parse(data), inPosition);
 		}else{
-			if(data){
-				//asume data is already an object
-				return self.rowManager.setData(data, inPosition);
-			}else{
 
-				//no data provided, check if ajaxURL is present;
-				if(self.modExists("ajax") && (self.modules.ajax.getUrl || self.options.ajaxURLGenerator)){
+			if(self.modExists("ajax", true)){
+				if(params){
+					self.modules.ajax.setParams(params);
+				}
 
-					if(self.options.pagination == "remote" && self.modExists("page", true)){
-						self.modules.page.reset(true);
-						return self.modules.page.setPage(1);
-					}else{
-						return self.modules.ajax.loadData(inPosition);
-					}
+				if(config){
+					self.modules.ajax.setConfig(config);
+				}
 
+				self.modules.ajax.setUrl(data);
+
+				if(self.options.pagination == "remote" && self.modExists("page", true)){
+					self.modules.page.reset(true);
+					return self.modules.page.setPage(1);
 				}else{
-					//empty data
-					return self.rowManager.setData([], inPosition);
+					//assume data is url, make ajax call to url to get data
+					return self.modules.ajax.loadData(inPosition);
 				}
 			}
 		}
-	};
+	}else{
+		if(data){
+			//asume data is already an object
+			return self.rowManager.setData(data, inPosition);
+		}else{
+
+			//no data provided, check if ajaxURL is present;
+			if(self.modExists("ajax") && (self.modules.ajax.getUrl || self.options.ajaxURLGenerator)){
+
+				if(self.options.pagination == "remote" && self.modExists("page", true)){
+					self.modules.page.reset(true);
+					return self.modules.page.setPage(1);
+				}else{
+					return self.modules.ajax.loadData(inPosition);
+				}
+
+			}else{
+				//empty data
+				return self.rowManager.setData([], inPosition);
+			}
+		}
+	}
+};
 
 //clear data
 Tabulator.prototype.clearData = function(){
@@ -776,8 +819,17 @@ Tabulator.prototype.searchData = function(field, type, value){
 };
 
 //get table html
-Tabulator.prototype.getHtml = function(active){
-	return this.rowManager.getHtml(active);
+Tabulator.prototype.getHtml = function(visible, style, config){
+	if(this.modExists("htmlTableExport", true)){
+		return this.modules.htmlTableExport.getHtml(visible, style, config);
+	}
+};
+
+//get print html
+Tabulator.prototype.print = function(visible, style, config){
+	if(this.modExists("print", true)){
+		return this.modules.print.printFullscreen(visible, style, config);
+	}
 };
 
 //retrieve Ajax URL
@@ -1680,7 +1732,7 @@ Tabulator.prototype.navigateDown = function(){
 
 		if(cell){
 			e.preventDefault();
-			return cell.nav().dpwn();
+			return cell.nav().down();
 		}
 	}
 
@@ -1861,7 +1913,7 @@ Tabulator.prototype.comms = {
 				}
 			}
 
-		}else if(query instanceof HTMLElement || query instanceof Tabulator){
+		}else if((typeof HTMLElement !== "undefined" && query instanceof HTMLElement) || query instanceof Tabulator){
 			match = Tabulator.prototype.comms.matchElement(query);
 
 			if(match){

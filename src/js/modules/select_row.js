@@ -48,8 +48,11 @@ SelectRow.prototype.initializeRow = function(row){
 		}
 
 		if(self.table.options.selectable && self.table.options.selectable != "highlight"){
-			if(self.table.options.selectableRangeMode && self.table.options.selectableRangeMode === "click"){
+			if(self.table.options.selectableRangeMode === "click"){
 				element.addEventListener("click", function(e){
+
+					self.table._clearSelection();
+
 					if(e.shiftKey){
 						self.lastClickedRow = self.lastClickedRow || row;
 
@@ -62,19 +65,33 @@ SelectRow.prototype.initializeRow = function(row){
 						var rows = self.table.rowManager.getDisplayRows().slice(0);
 						var toggledRows = rows.splice(fromRowIdx, toRowIdx - fromRowIdx + 1);
 
-						if(e.ctrlKey){
+						if(e.ctrlKey || e.metaKey){
 							toggledRows.forEach(function(toggledRow){
 								if(toggledRow !== self.lastClickedRow){
-									self.toggleRow(toggledRow)
+
+									if(self.table.options.selectable !== true && !self.isRowSelected(row)){
+										if(self.selectedRows.length < self.table.options.selectable){
+											self.toggleRow(toggledRow);
+										}
+									}else{
+										self.toggleRow(toggledRow);
+									}
 								}
 							});
 							self.lastClickedRow = row;
 						}else{
 							self.deselectRows();
+
+							if(self.table.options.selectable !== true){
+								if(toggledRows.length > self.table.options.selectable){
+									toggledRows = toggledRows.slice(0, self.table.options.selectable)
+								}
+							}
+
 							self.selectRows(toggledRows);
 						}
 					}
-					else if(e.ctrlKey){
+					else if(e.ctrlKey || e.metaKey){
 						self.toggleRow(row);
 						self.lastClickedRow = row;
 					}else{
@@ -82,9 +99,13 @@ SelectRow.prototype.initializeRow = function(row){
 						self.selectRows(row);
 						self.lastClickedRow = row;
 					}
+
+					self.table._clearSelection();
 				});
 			}else{
 				element.addEventListener("click", function(e){
+					self.table._clearSelection();
+
 					if(!self.selecting){
 						self.toggleRow(row);
 					}
@@ -92,6 +113,8 @@ SelectRow.prototype.initializeRow = function(row){
 
 				element.addEventListener("mousedown", function(e){
 					if(e.shiftKey){
+						self.table._clearSelection();
+
 						self.selecting = true;
 
 						self.selectPrev = [];
@@ -107,6 +130,7 @@ SelectRow.prototype.initializeRow = function(row){
 
 				element.addEventListener("mouseenter", function(e){
 					if(self.selecting){
+						self.table._clearSelection();
 						self.toggleRow(row);
 
 						if(self.selectPrev[1] == row){
@@ -117,6 +141,7 @@ SelectRow.prototype.initializeRow = function(row){
 
 				element.addEventListener("mouseout", function(e){
 					if(self.selecting){
+						self.table._clearSelection();
 						self.selectPrev.unshift(row);
 					}
 				});

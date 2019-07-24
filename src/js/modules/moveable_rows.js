@@ -172,7 +172,7 @@ MoveRows.prototype.bindTouchEvents = function(row, element){
 
 			self.startMove(e, row);
 		}, self.checkPeriod);
-	});
+	}, {passive: true});
 	this.moving, this.toRow, this.toRowAfter
 	element.addEventListener("touchmove", function(e){
 
@@ -312,8 +312,8 @@ MoveRows.prototype.setStartPosition = function(e, row){
 	if(this.connection){
 		position = element.getBoundingClientRect();
 
-		this.startX = position.left - pageX + window.scrollX;
-		this.startY = position.top - pageY + window.scrollY;
+		this.startX = position.left - pageX + window.pageXOffset;
+		this.startY = position.top - pageY + window.pageYOffset;
 	}else{
 		this.startY = (pageY - element.getBoundingClientRect().top);
 	}

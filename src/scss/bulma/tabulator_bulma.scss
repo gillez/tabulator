@@ -88,6 +88,10 @@ $footerBorderColor:$grey-lighter !default; //footer border color
 		-webkit-user-select: none;
 		-o-user-select: none;
 
+		&.tabulator-header-hidden{
+			display:none;
+		}
+
 		//individual column header element
 		.tabulator-col{
 			display:inline-block;
@@ -1048,3 +1052,24 @@ $footerBorderColor:$grey-lighter !default; //footer border color
 		font-weight:bold;
 	}
 }
+
+// Table print styling
+
+.tabulator-print-fullscreen{
+	position: absolute;
+	top:0;
+	bottom:0;
+	left:0;
+	right:0;
+
+	z-index: 10000;
+}
+
+body.tabulator-print-fullscreen-hide>*:not(.tabulator-print-fullscreen){
+	display:none !important;
+}
+
+.tabulator-print-table{
+	border-collapse: collapse;
+}
+

@@ -139,11 +139,15 @@ ColumnComponent.prototype.setHeaderFilterValue = function(value){
 };
 
 ColumnComponent.prototype.getNextColumn = function(){
-	return this._column.nextColumn().getComponent();
+	var nextCol = this._column.nextColumn();
+
+	return nextCol ? nextCol.getComponent() : false;
 };
 
 ColumnComponent.prototype.getPrevColumn = function(){
-	return this._column.prevColumn().getComponent();
+	var prevCol = this._column.prevColumn();
+
+	return prevCol ? prevCol.getComponent() : false;
 };
 
 ColumnComponent.prototype.getWidth = function(){
@@ -174,7 +178,7 @@ var Column = function(def, parent){
 	this.setFieldValue = "";
 
 	this.setField(this.definition.field);
-
+	this.checkDefinition();
 
 	this.modules = {}; //hold module variables;
 
@@ -199,6 +203,8 @@ var Column = function(def, parent){
 	this.widthFixed = false; //user has specified a width for this column
 
 	this.visible = true; //default visible state
+
+	this._mapDepricatedFunctionality();
 
 	//initialize column
 	if(def.columns){
@@ -240,6 +246,14 @@ Column.prototype.createGroupElement = function (){
 	return el;
 };
 
+Column.prototype.checkDefinition = function(){
+	Object.keys(this.definition).forEach((key) => {
+		if(this.defaultOptionList.indexOf(key) === -1){
+			console.warn("Invalid column definition option in '" + (this.field || this.definition.title) + "' column:", key)
+		}
+	});
+}
+
 Column.prototype.setField = function(field){
 	this.field = field;
 	this.fieldStructure = field ? (this.table.options.nestedFieldSeparator ? field.split(this.table.options.nestedFieldSeparator) : [field]) : [];
@@ -265,6 +279,13 @@ Column.prototype.reRegisterPosition = function(){
 		});
 	}else{
 		this.registerColumnPosition(this);
+	}
+};
+
+Column.prototype._mapDepricatedFunctionality = function(){
+	if(typeof this.definition.hideInHtml !== "undefined"){
+		this.definition.htmlOutput = !this.definition.hideInHtml;
+		console.warn("hideInHtml column definition property is depricated, you should now use htmlOutput")
 	}
 };
 
@@ -393,7 +414,7 @@ Column.prototype._bindEvents = function(){
 
 		self.element.addEventListener("touchstart", function(e){
 			tap = true;
-		});
+		}, {passive: true});
 
 		self.element.addEventListener("touchend", function(e){
 			if(tap){
@@ -438,7 +459,7 @@ Column.prototype._bindEvents = function(){
 				def.headerTapHold(e, self.getComponent());
 			}, 1000);
 
-		});
+		}, {passive: true});
 
 		self.element.addEventListener("touchend", function(e){
 			clearTimeout(tapHold);
@@ -673,18 +694,18 @@ Column.prototype._formatColumnHeaderTitle = function(el, title){
 		switch(typeof contents){
 			case "object":
 			if(contents instanceof Node){
-				this.element.appendChild(contents);
+				el.appendChild(contents);
 			}else{
-				this.element.innerHTML = "";
+				el.innerHTML = "";
 				console.warn("Format Error - Title formatter has returned a type of object, the only valid formatter object return is an instance of Node, the formatter returned:", contents);
 			}
 			break;
 			case "undefined":
 			case "null":
-			this.element.innerHTML = "";
+			el.innerHTML = "";
 			break;
 			default:
-			this.element.innerHTML = contents;
+			el.innerHTML = contents;
 		}
 	}else{
 		el.innerHTML = title;
@@ -999,7 +1020,6 @@ Column.prototype.setWidth = function(width){
 };
 
 Column.prototype.setWidthActual = function(width){
-
 	if(isNaN(width)){
 		width = Math.floor((this.table.element.clientWidth/100) * parseInt(width));
 	}
@@ -1120,7 +1140,6 @@ Column.prototype.prevColumn = function(){
 };
 
 Column.prototype.reinitializeWidth = function(force){
-
 	this.widthFixed = false;
 
 	//set width if present
@@ -1182,6 +1201,7 @@ Column.prototype.deleteCell = function(cell){
 Column.prototype.defaultOptionList = [
 "title",
 "field",
+"columns",
 "visible",
 "align",
 "width",
@@ -1195,6 +1215,8 @@ Column.prototype.defaultOptionList = [
 "cssClass",
 "rowHandle",
 "hideInHtml",
+"print",
+"htmlOutput",
 "sorter",
 "sorterParams",
 "formatter",
@@ -1265,6 +1287,7 @@ Column.prototype.defaultOptionList = [
 "headerFilterFunc",
 "headerFilterFuncParams",
 "headerFilterLiveFilter",
+"print",
 ];
 
 //////////////// Event Bindings /////////////////

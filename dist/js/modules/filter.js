@@ -1,6 +1,6 @@
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-/* Tabulator v4.2.2 (c) Oliver Folkerd */
+/* Tabulator v4.3.0 (c) Oliver Folkerd */
 
 var Filter = function Filter(table) {
 
@@ -69,7 +69,13 @@ Filter.prototype.initializeColumn = function (column, value) {
 					switch (filterType) {
 						case "partial":
 							filterFunc = function filterFunc(data) {
-								return String(column.getFieldValue(data)).toLowerCase().indexOf(String(value).toLowerCase()) > -1;
+								var colVal = column.getFieldValue(data);
+
+								if (typeof colVal !== 'undefined' && colVal !== null) {
+									return String(colVal).toLowerCase().indexOf(String(value).toLowerCase()) > -1;
+								} else {
+									return false;
+								}
 							};
 							type = "like";
 							break;
@@ -104,6 +110,8 @@ Filter.prototype.initializeColumn = function (column, value) {
 };
 
 Filter.prototype.generateHeaderFilterElement = function (column, initialValue) {
+	var _this = this;
+
 	var self = this,
 	    success = column.modules.filter.success,
 	    field = column.getField(),
@@ -237,6 +245,15 @@ Filter.prototype.generateHeaderFilterElement = function (column, initialValue) {
 				editorElement.focus();
 			});
 
+			editorElement.addEventListener("focus", function (e) {
+				var left = _this.table.columnManager.element.scrollLeft;
+
+				if (left !== _this.table.rowManager.element.scrollLeft) {
+					_this.table.rowManager.scrollHorizontal(left);
+					_this.table.columnManager.scrollHorizontal(left);
+				}
+			});
+
 			//live update filters as user types
 			typingTimer = false;
 
@@ -256,7 +273,7 @@ Filter.prototype.generateHeaderFilterElement = function (column, initialValue) {
 
 			if (column.definition.headerFilterLiveFilter !== false) {
 
-				if (!(column.definition.headerFilter === "autocomplete" || column.definition.editor === "autocomplete" && column.definition.headerFilter === true)) {
+				if (!(column.definition.headerFilter === 'autocomplete' || column.definition.headerFilter === 'tickCross' || (column.definition.editor === 'autocomplete' || column.definition.editor === 'tickCross') && column.definition.headerFilter === true)) {
 					editorElement.addEventListener("keyup", searchTrigger);
 					editorElement.addEventListener("search", searchTrigger);
 
@@ -439,16 +456,11 @@ Filter.prototype.findSubFilters = function (filters) {
 
 //get all filters
 Filter.prototype.getFilters = function (all, ajax) {
-	var self = this,
-	    output = [];
+	var output = [];
 
 	if (all) {
-		output = self.getHeaderFilters();
+		output = this.getHeaderFilters();
 	}
-
-	self.filterList.forEach(function (filter) {
-		output.push({ field: filter.field, type: filter.type, value: filter.value });
-	});
 
 	if (ajax) {
 		output.forEach(function (item) {
@@ -457,6 +469,35 @@ Filter.prototype.getFilters = function (all, ajax) {
 			}
 		});
 	}
+
+	output = output.concat(this.filtersToArray(this.filterList, ajax));
+
+	return output;
+};
+
+//filter to Object
+Filter.prototype.filtersToArray = function (filterList, ajax) {
+	var _this2 = this;
+
+	var output = [];
+
+	filterList.forEach(function (filter) {
+		var item;
+
+		if (Array.isArray(filter)) {
+			output.push(_this2.filtersToArray(filter, ajax));
+		} else {
+			item = { field: filter.field, type: filter.type, value: filter.value };
+
+			if (ajax) {
+				if (typeof item.type == "function") {
+					item.type = "function";
+				}
+			}
+
+			output.push(item);
+		}
+	});
 
 	return output;
 };
@@ -690,7 +731,7 @@ Filter.prototype.filters = {
 			return rowVal === filterVal ? true : false;
 		} else {
 			if (typeof rowVal !== 'undefined' && rowVal !== null) {
-				return String(rowVal).toLowerCase().indexOf(filterVal.toLowerCase()) > -1 ? true : false;
+				return String(rowVal).toLowerCase().indexOf(filterVal.toLowerCase()) > -1;
 			} else {
 				return false;
 			}
