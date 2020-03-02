@@ -20,14 +20,14 @@ $sortArrowInactive: #bbb !default;
 
 //row themeing
 $rowBackgroundColor:#fff !default; //table row background color
-$rowAltBackgroundColor:#EFEFEF !default; //table row background color
+$rowAltBackgroundColor:#F5F5F5 !default; //table row background color
 $rowBorderColor:#bbb !default; //table border color
 $rowTextColor:#333 !default; //table text color
 
-$rowSelectedBorderNoFocus: #989898 !default;
-$rowSelectedBorderFocus: #1D68CD !default;
 $rowSelectedBackgroundNoFocus: #C0C0C0 !default; //row background color when selected
+$rowSelectedBGNoFocusOtherCells: #DCDCDC !default; //row background color when selected
 $rowSelectedBackgroundFocus: #9ABCEA !default; //row background color when selected
+$rowSelectedBGFocusOtherCells:#D8E2F6 !default; //row background color when selected
 
 $editBoxColor:#1D68CD !default; //border color for edit boxes
 $errorColor:#dd0000 !default; //error indication
@@ -347,15 +347,7 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 		overflow:auto;
 		-webkit-overflow-scrolling: touch;
 
-		.tabulator-row{
-			.tabulator-cell{
-				border-top: 2px solid transparent;
-			}
-			&:last-child .tabulator-cell{
-				border-bottom: 2px solid transparent;
-			}
-		}
-
+		// Row-selected styles  used when table in focus
 		&:focus{
 			outline: none;
 
@@ -365,23 +357,21 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 						background-color:$rowSelectedBackgroundFocus;
 					}
 
-					//cell element in selected columns, within selected rows
-					&.tabulator-col-selectable .tabulator-cell.tabulator-col-selected{
-						background-color:$rowSelectedBackgroundFocus;
+					&.tabulator-col-selectable .tabulator-cell {
+						&.tabulator-col-selected{
+							//cell element in selected columns, within selected rows
+							background-color:$rowSelectedBackgroundFocus;
+						}
+						&:not(.tabulator-col-selected) {
+							//cell element in other columns, within selected rows
+							background-color:$rowSelectedBGFocusOtherCells;
+						}
 					}
-				}
-
-				&:not(.tabulator-selected)+.tabulator-selected  .tabulator-cell,
-				&.tabulator-selected+:not(.tabulator-selected)  .tabulator-cell,
-				&.tabulator-selected:first-child .tabulator-cell {
-					border-top: 2px solid $rowSelectedBorderFocus;
-				}
-				&.tabulator-selected:last-child .tabulator-cell {
-					border-bottom: 2px solid $rowSelectedBorderFocus;
 				}
 			}
 		}
 
+		// Row-selected styles  used when table not in focus
 		&:not(:focus){
 			.tabulator-row{
 				&.tabulator-selected{
@@ -389,19 +379,16 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 						background-color:$rowSelectedBackgroundNoFocus;
 					}
 
-					//cell element in selected columns, within selected rows
-					&.tabulator-col-selectable .tabulator-cell.tabulator-col-selected{
-						background-color:$rowSelectedBackgroundNoFocus;
+					&.tabulator-col-selectable .tabulator-cell {
+						&.tabulator-col-selected{
+							//cell element in selected columns, within selected rows
+							background-color:$rowSelectedBackgroundNoFocus;
+						}
+						&:not(.tabulator-col-selected) {
+							//cell element in other columns, within selected rows
+							background-color:$rowSelectedBackgroundNoFocus;
+						}
 					}
-				}
-
-				&:not(.tabulator-selected)+.tabulator-selected  .tabulator-cell,
-				&.tabulator-selected+:not(.tabulator-selected)  .tabulator-cell,
-				&.tabulator-selected:first-child .tabulator-cell {
-					border-top: 2px solid $rowSelectedBorderNoFocus;
-				}
-				&.tabulator-selected:last-child .tabulator-cell {
-					border-bottom: 2px solid $rowSelectedBorderNoFocus;
 				}
 			}
 		}
@@ -480,8 +467,8 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 		-o-user-select: none;
 
 		.tabulator-calcs-holder{
-			box-sizing:border-box;
 			width:calc(100% + 20px);
+			box-sizing:border-box;
 			margin:-5px -10px 5px -10px;
 
 			text-align: left;
@@ -785,10 +772,6 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 			}
 		}
 
-		&.tabulator-cell-action  {
-			padding: 2px 0;
-		}
-
 		.yotable-text {
 			margin-left: 4px;
 			text-overflow: clip;
@@ -799,28 +782,31 @@ $footerActiveColor:#d00 !default; //footer bottom active text color
 			}
 		}
 
-		.tagBubble {
-			padding: 1px;
-			display: inline-block;
-		}
-
-		.actionClassContainer {
-			text-align: center;
-			padding: 0;
-		}
-		.actionSummaryContainer {
-			width:100%;
-			text-align: center;
-			padding: 0;
-
-			.actionSummaryCheckedContainer,
-			.actionSummaryClearedContainer {
-				width: 50%;
-				display: inline-block;
-			}
+		&.tabulator-cell-action {
+			padding: 3px 0;
 
 			.tagBubble {
+				display: inline-block;
+				vertical-align: middle;
+			}
+
+			.actionClassContainer {
+				text-align: center;
 				padding: 0;
+			}
+			.actionSummaryContainer {
+				width:100%;
+				text-align: center;
+				padding: 0;
+
+				.actionSummaryCheckedContainer,
+				.actionSummaryClearedContainer {
+					width: 50%;
+					display: inline-block;
+				}
+				.tagBubble {
+					padding: 0;
+				}
 			}
 		}
 
